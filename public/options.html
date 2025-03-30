@@ -1,15 +1,508 @@
 <!doctype html>
-<html lang="en">
+<html>
   <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="index.css" />
+    <title>Gantt Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
   </head>
-
   <body>
-    <div id="root"></div>
+    <div id="ganttChart" style="width: 100%; height: 600px"></div>
 
-    <script type="module" src="index.js"></script>
+    <script>
+      const data = [
+        {
+          title: {
+            value: {
+              url: 'https://github.com/99228583/941518997/issues/2',
+              state: 'open',
+              title: { raw: 'Test 2', html: 'Test 2' },
+              number: 2,
+              issueId: 2958175847,
+              stateReason: null,
+            },
+            columnId: 'Title',
+            columnName: 'Title',
+          },
+          assignees: {
+            value: [
+              {
+                avatarUrl:
+                  'https://avatars.githubusercontent.com/u/4878991?s=40&u=cea9c3b3a477fc5291b700211cff3ac4397614cf&v=4',
+                id: 4878991,
+                login: 'cuongboi',
+                url: 'https://github.com/cuongboi',
+              },
+            ],
+            columnId: 'Assignees',
+            columnName: 'Assignees',
+          },
+          status: {
+            value: { id: '0243016e' },
+            columnId: 'Status',
+            columnName: 'Status',
+          },
+          'estimate-release': {
+            value: { value: '2025-03-10T00:00:00+00:00' },
+            columnId: 180201820,
+            columnName: 'Estimate Release',
+          },
+          'sprint-1': {
+            value: { id: '64e7eee9' },
+            columnId: 180201821,
+            columnName: 'Sprint 1',
+          },
+          'start-dev': {
+            value: { value: '2025-03-04T00:00:00+00:00' },
+            columnId: 180201822,
+            columnName: 'Start Dev',
+          },
+          'end-date-(vn-stg-end-test)': {
+            value: { value: '2025-03-07T00:00:00+00:00' },
+            columnId: 180201823,
+            columnName: 'End Date (VN STG End test)',
+          },
+          'inactive-reason': {
+            value: null,
+            columnId: 180201825,
+            columnName: 'Inactive Reason',
+          },
+          'estimate-po-demo': {
+            value: null,
+            columnId: 180201828,
+            columnName: 'Estimate PO Demo',
+          },
+          'release-date': {
+            value: null,
+            columnId: 180201829,
+            columnName: 'Release Date',
+          },
+          pri: { value: null, columnId: 180201831, columnName: 'Pri' },
+          'end-dev': {
+            value: { value: '2025-03-07T00:00:00+00:00' },
+            columnId: 180201832,
+            columnName: 'End Dev',
+          },
+          project: {
+            value: { raw: 'Proj1', html: 'Proj1' },
+            columnId: 180201833,
+            columnName: 'Project',
+          },
+          group: 'Sprint 7',
+        },
+        {
+          title: {
+            value: {
+              url: 'https://github.com/99228583/941518997/issues/1',
+              state: 'open',
+              title: { raw: 'Test 1', html: 'Test 1' },
+              number: 1,
+              issueId: 2958173999,
+              stateReason: null,
+            },
+            columnId: 'Title',
+            columnName: 'Title',
+          },
+          assignees: {
+            value: [
+              {
+                avatarUrl:
+                  'https://avatars.githubusercontent.com/u/99228583?s=40&v=4',
+                id: 99228583,
+                login: 'Lemongcam',
+                url: 'https://github.com/Lemongcam',
+              },
+            ],
+            columnId: 'Assignees',
+            columnName: 'Assignees',
+          },
+          status: {
+            value: { id: '6f30286b' },
+            columnId: 'Status',
+            columnName: 'Status',
+          },
+          'estimate-release': {
+            value: { value: '2025-03-11T00:00:00+00:00' },
+            columnId: 180201820,
+            columnName: 'Estimate Release',
+          },
+          'sprint-1': {
+            value: { id: '64e7eee9' },
+            columnId: 180201821,
+            columnName: 'Sprint 1',
+          },
+          'start-dev': {
+            value: { value: '2025-03-04T00:00:00+00:00' },
+            columnId: 180201822,
+            columnName: 'Start Dev',
+          },
+          'end-date-(vn-stg-end-test)': {
+            value: { value: '2025-03-10T00:00:00+00:00' },
+            columnId: 180201823,
+            columnName: 'End Date (VN STG End test)',
+          },
+          'inactive-reason': {
+            value: null,
+            columnId: 180201825,
+            columnName: 'Inactive Reason',
+          },
+          'estimate-po-demo': {
+            value: null,
+            columnId: 180201828,
+            columnName: 'Estimate PO Demo',
+          },
+          'release-date': {
+            value: null,
+            columnId: 180201829,
+            columnName: 'Release Date',
+          },
+          pri: { value: null, columnId: 180201831, columnName: 'Pri' },
+          'end-dev': {
+            value: { value: '2025-03-06T00:00:00+00:00' },
+            columnId: 180201832,
+            columnName: 'End Dev',
+          },
+          project: {
+            value: { raw: 'Proj1', html: 'Proj1' },
+            columnId: 180201833,
+            columnName: 'Project',
+          },
+          group: 'Sprint 7',
+        },
+        {
+          title: {
+            value: {
+              url: 'https://github.com/99228583/941518997/issues/4',
+              state: 'open',
+              title: { raw: 'Test 4', html: 'Test 4' },
+              number: 4,
+              issueId: 2958178463,
+              stateReason: null,
+            },
+            columnId: 'Title',
+            columnName: 'Title',
+          },
+          assignees: {
+            value: [
+              {
+                avatarUrl:
+                  'https://avatars.githubusercontent.com/u/4878991?s=40&u=cea9c3b3a477fc5291b700211cff3ac4397614cf&v=4',
+                id: 4878991,
+                login: 'cuongboi',
+                url: 'https://github.com/cuongboi',
+              },
+            ],
+            columnId: 'Assignees',
+            columnName: 'Assignees',
+          },
+          status: {
+            value: { id: '5624feb4' },
+            columnId: 'Status',
+            columnName: 'Status',
+          },
+          'estimate-release': {
+            value: { value: '2025-03-18T00:00:00+00:00' },
+            columnId: 180201820,
+            columnName: 'Estimate Release',
+          },
+          'sprint-1': {
+            value: { id: 'd7ee0b17' },
+            columnId: 180201821,
+            columnName: 'Sprint 1',
+          },
+          'start-dev': {
+            value: { value: '2025-03-13T00:00:00+00:00' },
+            columnId: 180201822,
+            columnName: 'Start Dev',
+          },
+          'end-date-(vn-stg-end-test)': {
+            value: { value: '2025-03-15T00:00:00+00:00' },
+            columnId: 180201823,
+            columnName: 'End Date (VN STG End test)',
+          },
+          'inactive-reason': {
+            value: null,
+            columnId: 180201825,
+            columnName: 'Inactive Reason',
+          },
+          'estimate-po-demo': {
+            value: null,
+            columnId: 180201828,
+            columnName: 'Estimate PO Demo',
+          },
+          'release-date': {
+            value: null,
+            columnId: 180201829,
+            columnName: 'Release Date',
+          },
+          pri: { value: null, columnId: 180201831, columnName: 'Pri' },
+          'end-dev': {
+            value: { value: '2025-03-15T00:00:00+00:00' },
+            columnId: 180201832,
+            columnName: 'End Dev',
+          },
+          project: {
+            value: { raw: 'Proj1', html: 'Proj1' },
+            columnId: 180201833,
+            columnName: 'Project',
+          },
+          group: 'Sprint 8',
+        },
+        {
+          title: {
+            value: {
+              url: 'https://github.com/99228583/941518997/issues/3',
+              state: 'open',
+              title: { raw: 'Issue 3', html: 'Issue 3' },
+              number: 3,
+              issueId: 2958177180,
+              stateReason: null,
+            },
+            columnId: 'Title',
+            columnName: 'Title',
+          },
+          assignees: {
+            value: [
+              {
+                avatarUrl:
+                  'https://avatars.githubusercontent.com/u/4878991?s=40&u=cea9c3b3a477fc5291b700211cff3ac4397614cf&v=4',
+                id: 4878991,
+                login: 'cuongboi',
+                url: 'https://github.com/cuongboi',
+              },
+              {
+                avatarUrl:
+                  'https://avatars.githubusercontent.com/u/99228583?s=40&v=4',
+                id: 99228583,
+                login: 'Lemongcam',
+                url: 'https://github.com/Lemongcam',
+              },
+            ],
+            columnId: 'Assignees',
+            columnName: 'Assignees',
+          },
+          status: {
+            value: { id: 'b538a2e4' },
+            columnId: 'Status',
+            columnName: 'Status',
+          },
+          'estimate-release': {
+            value: { value: '2025-03-18T00:00:00+00:00' },
+            columnId: 180201820,
+            columnName: 'Estimate Release',
+          },
+          'sprint-1': {
+            value: { id: 'd7ee0b17' },
+            columnId: 180201821,
+            columnName: 'Sprint 1',
+          },
+          'start-dev': {
+            value: { value: '2025-03-10T00:00:00+00:00' },
+            columnId: 180201822,
+            columnName: 'Start Dev',
+          },
+          'end-date-(vn-stg-end-test)': {
+            value: { value: '2025-03-18T00:00:00+00:00' },
+            columnId: 180201823,
+            columnName: 'End Date (VN STG End test)',
+          },
+          'inactive-reason': {
+            value: null,
+            columnId: 180201825,
+            columnName: 'Inactive Reason',
+          },
+          'estimate-po-demo': {
+            value: null,
+            columnId: 180201828,
+            columnName: 'Estimate PO Demo',
+          },
+          'release-date': {
+            value: null,
+            columnId: 180201829,
+            columnName: 'Release Date',
+          },
+          pri: { value: null, columnId: 180201831, columnName: 'Pri' },
+          'end-dev': {
+            value: { value: '2025-03-12T00:00:00+00:00' },
+            columnId: 180201832,
+            columnName: 'End Dev',
+          },
+          project: {
+            value: { raw: 'Proj2', html: 'Proj2' },
+            columnId: 180201833,
+            columnName: 'Project',
+          },
+          group: 'Sprint 8',
+        },
+        {
+          title: {
+            value: {
+              url: 'https://github.com/99228583/941518997/issues/5',
+              state: 'open',
+              title: { raw: 'Test 5', html: 'Test 5' },
+              number: 5,
+              issueId: 2958188215,
+              stateReason: null,
+            },
+            columnId: 'Title',
+            columnName: 'Title',
+          },
+          assignees: {
+            value: [
+              {
+                avatarUrl:
+                  'https://avatars.githubusercontent.com/u/4878991?s=40&u=cea9c3b3a477fc5291b700211cff3ac4397614cf&v=4',
+                id: 4878991,
+                login: 'cuongboi',
+                url: 'https://github.com/cuongboi',
+              },
+            ],
+            columnId: 'Assignees',
+            columnName: 'Assignees',
+          },
+          status: {
+            value: { id: '0243016e' },
+            columnId: 'Status',
+            columnName: 'Status',
+          },
+          'estimate-release': {
+            value: { value: '2025-04-07T00:00:00+00:00' },
+            columnId: 180201820,
+            columnName: 'Estimate Release',
+          },
+          'sprint-1': {
+            value: { id: 'dc70b213' },
+            columnId: 180201821,
+            columnName: 'Sprint 1',
+          },
+          'start-dev': {
+            value: { value: '2025-03-27T00:00:00+00:00' },
+            columnId: 180201822,
+            columnName: 'Start Dev',
+          },
+          'end-date-(vn-stg-end-test)': {
+            value: { value: '2025-04-02T00:00:00+00:00' },
+            columnId: 180201823,
+            columnName: 'End Date (VN STG End test)',
+          },
+          'inactive-reason': {
+            value: null,
+            columnId: 180201825,
+            columnName: 'Inactive Reason',
+          },
+          'estimate-po-demo': {
+            value: null,
+            columnId: 180201828,
+            columnName: 'Estimate PO Demo',
+          },
+          'release-date': {
+            value: null,
+            columnId: 180201829,
+            columnName: 'Release Date',
+          },
+          pri: { value: null, columnId: 180201831, columnName: 'Pri' },
+          'end-dev': {
+            value: null,
+            columnId: 180201832,
+            columnName: 'End Dev',
+          },
+          project: { value: null, columnId: 180201833, columnName: 'Project' },
+          group: 'Sprint 1 10',
+        },
+      ];
+
+      const ganttChart = echarts.init(document.getElementById('ganttChart'));
+
+      const ganttData = data.map((item) => ({
+        name: item.title.value.title.raw,
+        startDate: new Date(item['start-dev'].value.value).getTime(),
+        endDate:
+          item['end-date-(vn-stg-end-test)'].value &&
+          item['end-date-(vn-stg-end-test)'].value.value
+            ? new Date(item['end-date-(vn-stg-end-test)'].value.value).getTime()
+            : null,
+        itemStyle: {
+          color: '#87CEEB',
+        },
+        label: {
+          show: true,
+          position: 'inside',
+          formatter: (params) => params.name,
+        },
+      }));
+
+      const option = {
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            type: 'shadow',
+          },
+          formatter: (params) => {
+            const item = ganttData[params[0].dataIndex];
+            let tooltip = item.name + '<br>';
+            tooltip +=
+              'Start: ' +
+              new Date(item.startDate).toLocaleDateString() +
+              '<br>';
+            if (item.endDate) {
+              tooltip += 'End: ' + new Date(item.endDate).toLocaleDateString();
+            }
+            return tooltip;
+          },
+        },
+        xAxis: {
+          type: 'time',
+          axisLabel: {
+            formatter: function (value) {
+              const date = new Date(value);
+              return date.toLocaleDateString();
+            },
+          },
+        },
+        yAxis: {
+          type: 'category',
+          data: ganttData.map((item) => item.name),
+          inverse: true,
+        },
+        series: [
+          {
+            type: 'custom',
+            renderItem: (params, api) => {
+              const categoryIndex = api.value(0);
+              const start = api.coord([api.value(1), categoryIndex]);
+              const end = api.coord([api.value(2), categoryIndex]);
+              const height = api.size([0, 1])[1] * 0.6;
+              const rectShape = echarts.graphic.clipRectByRect(
+                {
+                  x: start[0],
+                  y: start[1] - height / 2,
+                  width: end[0] - start[0],
+                  height: height,
+                },
+                {
+                  x: params.coordSys.x,
+                  y: params.coordSys.y,
+                  width: params.coordSys.width,
+                  height: params.coordSys.height,
+                },
+              );
+              if (rectShape) {
+                return {
+                  type: 'rect',
+                  shape: rectShape,
+                  style: api.style(),
+                };
+              }
+              return null;
+            },
+            encode: {
+              x: ['startDate', 'endDate'],
+              y: 0,
+            },
+            data: ganttData,
+          },
+        ],
+      };
+
+      ganttChart.setOption(option);
+    </script>
   </body>
 </html>

@@ -45,8 +45,7 @@ const buildProject = async (): Promise<void> => {
       target: 'browser',
       entrypoints: resolveEntryPoints(entrypoints),
       outdir: OUT_DIR,
-      minify: Bun.env.BUILD_ENV !== 'development',
-      sourcemap: Bun.env.BUILD_ENV !== 'development' ? 'none' : 'linked',
+      format: 'cjs',
     }),
 
     (async () => {
@@ -59,6 +58,18 @@ const buildProject = async (): Promise<void> => {
 
   const glob = new Glob('**');
   const copyPromises: Promise<unknown>[] = [];
+
+  const contentScriptFile = OUT_DIR + '/content-script/index.js';
+
+  const contentScriptFileExists = await Bun.file(contentScriptFile).exists();
+
+  // Update content script file to (() => { ... })()
+  if (contentScriptFileExists) {
+    const contentScriptFileContent = await Bun.file(contentScriptFile).text();
+    const updatedContent = `(() => {${contentScriptFileContent}})();`;
+
+    await Bun.write(contentScriptFile, updatedContent);
+  }
 
   for await (const filename of glob.scan(PUBLIC_DIR)) {
     const srcPath = `${PUBLIC_DIR}/${filename}`;
@@ -93,6 +104,8 @@ const buildProject = async (): Promise<void> => {
 
 // Execute build
 buildProject().catch((error) => {
+  console.log(error);
+
   console.error(`Build failed: ${error.message}`);
   process.exit(1);
 });

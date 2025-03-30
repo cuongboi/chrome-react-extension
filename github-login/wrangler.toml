@@ -1,0 +1,13 @@
+name = "github-login"
+type = "webpack"
+route = ''
+zone_id = ''
+usage_model = ''
+compatibility_flags = []
+workers_dev = true
+compatibility_date = "2025-03-29"
+main = "./src/index.ts"
+
+[vars]
+GITHUB_CLIENT_ID = "Ov23li8DWLXObnNaJ9OO"
+GITHUB_CLIENT_SECRET = "7ad8b404f5b5f74dc5570f2e1313cbdd56facdbf"

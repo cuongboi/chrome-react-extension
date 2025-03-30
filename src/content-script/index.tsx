@@ -1,15 +1,50 @@
 import { createRoot } from 'react-dom/client';
 
-import { App } from './App';
+import { ProjectManager } from './project/project';
+import { AppProvider } from './provider';
 
-const body = document.querySelector('body');
-const app = document.createElement('div');
-app.id = 'extension-content-root';
+const chart = document.createElement('div');
+chart.id = 'extension-project-manager-chart';
 
-if (body) {
-  body.querySelector('#extension-content-root')?.remove();
-  body.prepend(app);
+const config = document.createElement('div');
+config.id = 'extension-project-manager-config';
 
-  const root = createRoot(app);
-  root.render(<App />);
-}
+const intv = setInterval(() => {
+  const body = document.querySelector('body');
+
+  if (body) {
+    body
+      .querySelectorAll(
+        '#extension-project-manager-chart, #extension-project-manager-config',
+      )
+      .forEach((el) => el.remove());
+    const attackButton = body.querySelector<HTMLDivElement>(
+      'button[aria-label="Project details"]',
+    );
+
+    if (attackButton) {
+      clearInterval(intv);
+      attackButton.parentNode?.parentNode?.prepend(chart, config);
+
+      const chartRoot = createRoot(chart);
+      chartRoot.render(
+        <AppProvider>
+          <ProjectManager
+            siblingClass={attackButton.classList.toString()}
+            type="chart"
+          />
+        </AppProvider>,
+      );
+
+      const configRoot = createRoot(config);
+      configRoot.render(
+        <AppProvider>
+          <ProjectManager
+            siblingClass={attackButton.classList.toString()}
+            type="config"
+          />
+        </AppProvider>,
+      );
+    }
+  }
+}, 500);

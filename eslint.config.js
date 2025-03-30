@@ -5,5 +5,7 @@ export default tseslint.config({
   files: ['src/**/*.{js,ts,tsx}', 'config/*.ts'],
   extends: [eslint.configs.recommended, tseslint.configs.recommended],
   ignores: ['node_modules/*', '*/dist/*', '**/*.spec.ts'],
-  rules: {},
+  rules: {
+    '@typescript-eslint/no-explicit-any': 'off',
+  },
 });

@@ -22,17 +22,14 @@
   "content_scripts": [
     {
       "matches": ["*://github.com/*"],
-      "js": ["content-script/index.js"],
       "css": ["main.css"],
       "run_at": "document_start"
     }
   ],
   "permissions": ["storage", "notifications", "scripting", "activeTab", "tabs"],
-  "host_permissions": ["*://github.com/*", "*://*.github.com/*"],
-  "web_accessible_resources": [
-    {
-      "resources": ["main.css"],
-      "matches": ["https://*/*"]
-    }
+  "host_permissions": [
+    "*://github.com/*",
+    "*://*.github.com/*",
+    "*://github-login.megit.workers.dev/*"
   ]
 }
