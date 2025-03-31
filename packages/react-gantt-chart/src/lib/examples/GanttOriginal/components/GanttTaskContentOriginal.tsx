@@ -299,9 +299,9 @@ const GanttTaskContentOriginal = (props: IProps) => {
               task={task}
               arrowIndent={arrowIndent}
               taskHeight={taskHeight}
-              // isProgressChangeable={!!onProgressChange && !task.isDisabled}
+              isProgressChangeable={!!onProgressChange && !task.isDisabled}
               // isDateChangeable={!!onDateChange && !task.isDisabled}
-              isProgressChangeable={false}
+              // isProgressChangeable={false}
               isDateChangeable={false}
               isDelete={!task.isDisabled}
               onEventStart={handleBarEventStart}

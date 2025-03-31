@@ -292,6 +292,7 @@ export interface UrlIssue {
 }
 
 export interface TaskItem {
+  id: number;
   contentId: number;
   contentType: string;
   Title: Title;

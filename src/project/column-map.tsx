@@ -75,6 +75,7 @@ export default function ColumnMap() {
     try {
       setColumnMap(values);
       setSaved(true);
+      window.location.reload();
       toast.success('Column map saved successfully');
     } catch (error) {
       console.error('Form submission error', error);
@@ -86,7 +87,7 @@ export default function ColumnMap() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4 w-full"
+        className="flex flex-col gap-4 w-full p-4"
         onChange={() => {
           setSaved(false);
         }}
@@ -177,7 +178,9 @@ export default function ColumnMap() {
           )}
         />
 
-        <Button type="submit">{saved ? 'Saved' : 'Submit'}</Button>
+        <Button type="submit" disabled={saved}>
+          {saved ? 'Saved' : 'Submit'}
+        </Button>
       </form>
     </Form>
   );

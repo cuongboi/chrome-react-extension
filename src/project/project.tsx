@@ -1,6 +1,7 @@
 import { ChartGantt, LoaderIcon, SlidersVertical } from 'lucide-react';
 import React from 'react';
 
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Sheet,
   SheetContent,
@@ -19,7 +20,7 @@ export const ProjectManager: React.FC<{
   siblingClass: string;
   type: 'chart' | 'config';
 }> = ({ siblingClass, type = 'config' }) => {
-  const { isReady, columnMap } = useFetchProject(true);
+  const { isReady, columnMap } = useFetchProject({ watch: true });
   const isConfig = React.useMemo(() => type === 'config', [type]);
 
   return (
@@ -38,24 +39,34 @@ export const ProjectManager: React.FC<{
         )}
       </SheetTrigger>
       <SheetContent
-        className="flex flex-col h-full"
+        className="flex flex-col h-full w-full"
         style={{
-          maxWidth: isConfig ? '30%' : '80%',
+          maxWidth: isConfig ? '30%' : '100%',
         }}
       >
-        <SheetHeader>
-          <SheetTitle>
-            {isConfig ? 'Config your columns map' : 'Gantt Chart'}
-          </SheetTitle>
-          <SheetDescription>
-            {isConfig ? 'Make your columns map to the Gantt chart.' : ''}
-          </SheetDescription>
-        </SheetHeader>
-
         {isReady ? (
-          <div className="px-4 flex-1 h-full">
-            {isConfig ? <ColumnMap /> : <Chart />}
-          </div>
+          isConfig ? (
+            <ScrollArea className="w-full h-full flex flex-col gap-2">
+              <SheetHeader>
+                <SheetTitle>Config your columns map</SheetTitle>
+                <SheetDescription>
+                  Make your columns map to the Gantt chart.
+                </SheetDescription>
+              </SheetHeader>
+              <ColumnMap />
+            </ScrollArea>
+          ) : (
+            <div className="flex-1 flex flex-col h-full overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle>Gantt Chart</SheetTitle>
+                <SheetDescription>
+                  See your projects in a Gantt chart.
+                </SheetDescription>
+              </SheetHeader>
+
+              <Chart className="flex-1 w-full h-full" />
+            </div>
+          )
         ) : (
           <div className="flex items-center justify-center flex-1">
             <LoaderIcon className="animate-spin" />

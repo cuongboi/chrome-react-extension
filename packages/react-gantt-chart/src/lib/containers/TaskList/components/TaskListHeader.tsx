@@ -53,11 +53,20 @@ const TaskListHeader = (props: IProps & typeof defaultProps) => {
 
   // *** CONDITIONALS ***
   const headerBody: JSX.Element[] = [];
+
   columns.forEach((column, index) => {
     const columnElement = (
       <React.Fragment key={index}>
         {/* COLUMN */}
-        <div style={columnStyle}>{column}</div>
+        <div
+          style={{
+            ...columnStyle,
+            minWidth: index === 0 ? '400px' : '120px',
+            maxWidth: index === 0 ? '400px' : '120px',
+          }}
+        >
+          {column}
+        </div>
 
         {/* SEPARATOR */}
         {index !== columns.length - 1 && <div style={columnSeparatorStyle} />}

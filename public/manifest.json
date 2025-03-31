@@ -1,35 +1,24 @@
 {
-  "name": "Github Agile Support",
-  "description": "Github Agile Support",
-  "short_name": "Github Agile",
+  "name": "Github Gantt Chart Support",
+  "description": "Github Gantt Chart Support",
+  "short_name": "Github Gantt Chart",
 
-  "version": "0.1.0",
+  "version": "0.1.2",
   "manifest_version": 3,
   "icons": {
-    "16": "icons/16.png",
-    "32": "icons/32.png",
+    "36": "icons/36.png",
     "48": "icons/48.png",
-    "128": "icons/128.png"
-  },
-  "action": {
-    "default_title": "Extension action title",
-    "default_popup": "popup/index.html"
-  },
-  "options_page": "options/index.html",
-  "background": {
-    "service_worker": "background.js"
+    "72": "icons/72.png",
+    "96": "icons/96.png"
   },
   "content_scripts": [
     {
       "matches": ["*://github.com/*"],
       "css": ["main.css"],
+      "js": ["index.js"],
       "run_at": "document_start"
     }
   ],
-  "permissions": ["storage", "notifications", "scripting", "activeTab", "tabs"],
-  "host_permissions": [
-    "*://github.com/*",
-    "*://*.github.com/*",
-    "*://github-login.megit.workers.dev/*"
-  ]
+  "permissions": ["scripting", "storage"],
+  "host_permissions": ["*://github.com/*"]
 }

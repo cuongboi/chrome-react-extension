@@ -2,6 +2,8 @@ import { clsx, type ClassValue } from 'clsx';
 import elementReady, { type Options } from 'element-ready';
 import { twMerge } from 'tailwind-merge';
 
+import type { UrlIssue } from '../types';
+
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -60,3 +62,44 @@ export function stringToColorHash(str: string): string {
   }
   return color.toUpperCase();
 }
+
+export const joinPath = (...paths: string[]) => {
+  return paths.join('/').replace(/\/+/g, '/').replace(/\/$/, '');
+};
+
+export const parseIssueUrl = (url: string): UrlIssue | null => {
+  const regex = /github\.com\/([^/]+)\/([^/]+)\/(\w+)\/(\d+)/;
+  const match = url.match(regex);
+  if (match) {
+    const [, owner, repo, type, number] = match;
+    return { owner, repo, type, number };
+  }
+  return null;
+};
+
+export const swapObject = <T extends object>(
+  obj: T,
+): { [key: string]: string } => {
+  const ret: { [key: string]: string } = {};
+  for (const key in obj) {
+    // eslint-disable-next-line no-prototype-builtins
+    if (obj.hasOwnProperty(key)) {
+      ret[String(obj[key])] = key;
+    }
+  }
+  return ret;
+};
+
+export const wait = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
+
+export const delay = <T>(fn: (...args: any[]) => T, ms: number) => {
+  let timer: number;
+
+  return function (...args: any[]) {
+    clearTimeout(timer);
+    timer = window.setTimeout(() => {
+      fn(...args);
+    }, ms);
+  };
+};

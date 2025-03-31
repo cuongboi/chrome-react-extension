@@ -10,6 +10,14 @@ export const AppContext = React.createContext({
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  React.useEffect(() => {
+    setTimeout(() => {
+      document.documentElement.classList.add(
+        document.documentElement.getAttribute('data-color-mode') ?? 'light',
+      );
+    }, 100);
+  }, []);
+
   return (
     <AppContext.Provider value={{}}>
       {children}

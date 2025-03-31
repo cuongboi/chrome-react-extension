@@ -17,16 +17,7 @@ const FILE_EXTENSIONS = {
   css: '.css',
 } as const;
 
-const entrypoints = [
-  'background.ts',
-  'content-script/index.tsx',
-  'options/index.tsx',
-  'popup/index.tsx',
-];
-
-if (get(manifest, 'background.service_worker')) {
-  entrypoints.concat([manifest.background.service_worker]);
-}
+const entrypoints = ['index.tsx'];
 
 if (get(manifest, 'content_scripts')) {
   entrypoints.concat(
@@ -59,14 +50,17 @@ const buildProject = async (): Promise<void> => {
   const glob = new Glob('**');
   const copyPromises: Promise<unknown>[] = [];
 
-  const contentScriptFile = OUT_DIR + '/content-script/index.js';
+  const contentScriptFile = OUT_DIR + '/index.js';
 
   const contentScriptFileExists = await Bun.file(contentScriptFile).exists();
 
   // Update content script file to (() => { ... })()
   if (contentScriptFileExists) {
     const contentScriptFileContent = await Bun.file(contentScriptFile).text();
-    const updatedContent = `(() => {${contentScriptFileContent}})();`;
+    const updatedContent = `(() => {${contentScriptFileContent}})();`.replace(
+      /\??(\.appendChild\()/g,
+      '?$1',
+    );
 
     await Bun.write(contentScriptFile, updatedContent);
   }

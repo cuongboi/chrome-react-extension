@@ -159,7 +159,14 @@ const TaskListTable = (props: IProps & typeof defaultProps) => {
           // TABLE ROW
           <div style={rowStyle} key={`${t.id}row`}>
             {/* PRIMARY CELL */}
-            <div style={cellStyle} title={t.name}>
+            <div
+              style={{
+                ...cellStyle,
+                minWidth: '400px',
+                maxWidth: '400px',
+              }}
+              title={t.name}
+            >
               {/* TABLE CELL WRAPPER */}
               <div style={tableCellWrapperStyle}>
                 {/* EXPANDER */}
@@ -171,20 +178,39 @@ const TaskListTable = (props: IProps & typeof defaultProps) => {
                 </div>
 
                 {/* TEXT */}
-                <div>{t.name}</div>
+                <div
+                  style={{
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                  }}
+                >
+                  {t.name}
+                </div>
               </div>
             </div>
 
             {/* START DATE CELL */}
             {showStartDateColumn === true && (
-              <div style={cellStyle}>
+              <div
+                style={{
+                  ...cellStyle,
+                  minWidth: '120px',
+                  maxWidth: '120px',
+                }}
+              >
                 &nbsp;{t.start.toLocaleDateString(locale, dateTimeOptions)}
               </div>
             )}
 
             {/* END DATE CELL */}
             {showEndDateColumn === true && (
-              <div style={cellStyle}>
+              <div
+                style={{
+                  ...cellStyle,
+                  minWidth: '120px',
+                  maxWidth: '120px',
+                }}
+              >
                 &nbsp;{t.end.toLocaleDateString(locale, dateTimeOptions)}
               </div>
             )}

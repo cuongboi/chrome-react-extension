@@ -2,13 +2,15 @@ import { create } from 'zustand';
 import { ChromeLocalStorage } from 'zustand-chrome-storage';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-import type { Group, TaskItem } from '@/content-script/types';
+import type { Group, TaskItem } from '../types';
 
 export const useProjectStore = create<{
   items: TaskItem[];
   setItems: (items: TaskItem[]) => void;
   groups: { [key: string]: Group };
   setGroups: (groups: { [key: string]: Group }) => void;
+  updateApi: string;
+  setUpdateApi: (updateApi: string) => void;
 }>()(
   persist(
     (set) => ({
@@ -19,6 +21,10 @@ export const useProjectStore = create<{
       groups: {},
       setGroups: (groups: { [key: string]: Group }) => {
         set({ groups });
+      },
+      updateApi: '',
+      setUpdateApi: (updateApi: string) => {
+        set({ updateApi });
       },
     }),
     {

@@ -3,18 +3,15 @@ import { useEffect, useState } from 'react';
 
 import { useColumnStore, useProjectStore } from '@/storage/project';
 
-import { joinPath, parseIssueUrl, swapObject } from '../lib/utils';
+import { delay, joinPath, parseIssueUrl, swapObject } from '../lib/utils';
 
-export function useFetchProject(newFetch = false) {
+export function useFetchProject(config?: { watch?: boolean }) {
   const [isReady, setIsReady] = useState(false);
-  const { setItems, items, groups, setGroups } = useProjectStore();
+  const { setItems, items, groups, setGroups, setUpdateApi } =
+    useProjectStore();
   const { setColumns, columns, columnMap } = useColumnStore();
 
   useEffect(() => {
-    if (!newFetch) {
-      return;
-    }
-
     const url = window.location.href;
     const issueUrl = parseIssueUrl(url);
 
@@ -42,6 +39,8 @@ export function useFetchProject(newFetch = false) {
 
           const columnsDataRaw = $('#memex-columns-data').text();
           const itemsRaw = $('#memex-paginated-items-data').text();
+          const updateApiRaw = $('#memex-item-update-api-data').text();
+          setUpdateApi(JSON.parse(updateApiRaw).url);
 
           const columns = JSON.parse(columnsDataRaw).reduce(
             (acc: any, column: any) => {
@@ -110,6 +109,7 @@ export function useFetchProject(newFetch = false) {
             }
 
             return {
+              id: item.id,
               contentId: item.contentId,
               contentType: item.contentType,
               ...columnData,
@@ -127,22 +127,27 @@ export function useFetchProject(newFetch = false) {
 
       fetchData();
 
-      // Oserver for changes [data-testid="issue-timeline-container"]
-      const observer = new MutationObserver(() => {
-        const newIssueUrl = parseIssueUrl(window.location.href);
-        if (newIssueUrl && newIssueUrl.type === 'issues') {
-          fetchData();
-        }
-      });
+      if (config?.watch) {
+        const observer = new MutationObserver(
+          delay(() => {
+            const newIssueUrl = parseIssueUrl(window.location.href);
+            if (newIssueUrl && newIssueUrl.type === 'projects') {
+              fetchData();
+            }
+          }, 500),
+        );
 
-      const targetNode = document.querySelector(
-        '[class*="TableBody-module__tableScrollContainerInner"]',
-      );
-      if (targetNode) {
-        observer.observe(targetNode, {
-          childList: true,
-          subtree: true,
-        });
+        if (
+          document.querySelector<HTMLDivElement>('#memex-project-view-root')
+        ) {
+          observer.observe(
+            document.querySelector<HTMLDivElement>('#memex-project-view-root')!,
+            {
+              childList: true,
+              characterData: true,
+            },
+          );
+        }
       }
     }
   }, []);
