@@ -98,7 +98,7 @@ export const defaultProps: TOptionalProps = {
   milestoneBackgroundColor: '#f1c453',
   milestoneBackgroundSelectedColor: '#f29e4c',
   handleWidth: 8,
-  arrowColor: 'grey',
+  arrowColor: 'var(--data-yellow-color-emphasis)',
   fontFamily:
     'Arial, Roboto, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue',
   fontSize: '14px',

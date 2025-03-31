@@ -39,6 +39,7 @@ type ColumnMap = {
   end: number;
   progress: number;
   sprintDuration: number;
+  parentId?: number;
 };
 export const useColumnStore = create<{
   columns: { [key: string]: any };
@@ -49,6 +50,7 @@ export const useColumnStore = create<{
     end: number | string;
     progress: number | string;
     sprintDuration: number | string;
+    parentId: number | string;
   }) => void;
 }>()(
   persist(
@@ -70,6 +72,7 @@ export const useColumnStore = create<{
             end: Number(columnMap.end),
             progress: Number(columnMap.progress),
             sprintDuration: Number(columnMap.sprintDuration),
+            parentId: Number(columnMap.parentId),
           },
         });
       },

@@ -4,40 +4,60 @@ import React from 'react';
 import { GanttOriginal, type Task, ViewMode } from 'react-gantt-chart/lib';
 import { toast } from 'sonner';
 
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { useProjectStore } from '@/storage/project';
+import { useColumnStore, useProjectStore } from '@/storage/project';
 
 import { useFetchProject } from '../hook/useFetchProject';
-import type { Assignee, TaskItem } from '../types';
+import type { TaskItem } from '../types';
 
-const createAssigneeInfo = (assignees: Assignee[]) => (
-  <div className="flex flex-col">
-    <div className="flex items-center gap-2">
-      <span>Assignee:</span>
-      <div className="flex -space-x-[0.25rem]">
-        {assignees.map((assignee) => (
-          <img
-            key={assignee.id}
-            className="ring-background rounded-full ring-1"
-            src={assignee.avatarUrl}
-            width={18}
-            height={18}
-          />
-        ))}
+const createMoreInfo = (item: TaskItem) => {
+  const { columns } = useColumnStore.getState();
+
+  const status = columns.Status.settings.options.find(
+    (option: any) => option.id === item.Status?.id,
+  ) as {
+    color: string;
+    description: string;
+    name: string;
+  };
+
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        <span>Assignee:</span>
+        <div className="flex -space-x-[0.25rem]">
+          {item.Assignees.map((assignee) => (
+            <img
+              key={assignee.id}
+              className="ring-background rounded-full ring-1"
+              src={assignee.avatarUrl}
+              width={18}
+              height={18}
+            />
+          ))}
+        </div>
       </div>
-    </div>
-  </div>
-);
 
-const createTask = (item: TaskItem, projectId?: string): Task => ({
+      {status && <Badge variant="secondary">{status.name}</Badge>}
+    </>
+  );
+};
+
+const createTask = (
+  item: TaskItem,
+  projectId?: string,
+  parentId?: string,
+): Task => ({
   type: 'task' as Task['type'],
   id: String(item.id),
   name: item.Title.title.raw,
   start: startOfDay(new Date(item.start?.value)),
   end: endOfDay(new Date(item.end?.value)),
   progress: Number(item.progress?.value || 0),
+  dependencies: [parentId || ''],
   ...(projectId && { project: projectId }),
-  info: createAssigneeInfo(item.Assignees),
+  info: createMoreInfo(item),
 });
 
 export const Chart: React.FC<{
@@ -52,9 +72,31 @@ export const Chart: React.FC<{
     if (items.length === 0) return;
 
     const newTasks: Task[] = [];
+    const noParentItems = items.filter((item) => !item.parentId?.value);
+    const withParentItems = items
+      .filter((item) => item.parentId?.value)
+      .reduce(
+        (acc, item) => {
+          const parentId = item.parentId?.value;
+          if (!acc[parentId]) {
+            acc[parentId] = [];
+          }
+          acc[parentId].push(item);
+          return acc;
+        },
+        {} as Record<string, TaskItem[]>,
+      );
 
     if (!groups || Object.keys(groups).length === 0) {
-      newTasks.push(...items.map((item) => createTask(item, 'task')));
+      noParentItems.forEach((item) => {
+        newTasks.push(createTask(item, 'task'));
+
+        if (withParentItems[item.Title.number]) {
+          withParentItems[item.Title.number].forEach((childItem) => {
+            newTasks.push(createTask(childItem, 'task', String(item.id)));
+          });
+        }
+      });
     } else {
       Object.values(groups)
         .sort(
@@ -67,17 +109,20 @@ export const Chart: React.FC<{
           const end = endOfDay(
             addDays(
               start,
-              group.groupMetadata.duration ?? columnMap.sprintDuration,
+              (group.groupMetadata.duration ?? columnMap.sprintDuration) - 1,
             ),
           );
-          const progress = Math.min(
-            100,
-            Math.round(
-              ((Date.now() - start.getTime()) /
-                (end.getTime() - start.getTime())) *
-                100,
-            ),
-          );
+          const progress =
+            start.getTime() < Date.now()
+              ? Math.min(
+                  100,
+                  Math.round(
+                    ((Date.now() - start.getTime()) /
+                      (end.getTime() - start.getTime())) *
+                      100,
+                  ),
+                )
+              : 0;
 
           // Add project task
           newTasks.push({
@@ -97,11 +142,19 @@ export const Chart: React.FC<{
             hideChildren: Date.now() - end.getTime() > 0,
           });
 
-          newTasks.push(
-            ...items
-              .filter((item) => item.group?.groupId === group.groupId)
-              .map((item) => createTask(item, group.groupId)),
-          );
+          noParentItems
+            .filter((item) => item.group?.groupId === group.groupId)
+            .forEach((item) => {
+              newTasks.push(createTask(item, group.groupId));
+
+              if (withParentItems[item.Title.number]) {
+                withParentItems[item.Title.number].forEach((childItem) => {
+                  newTasks.push(
+                    createTask(childItem, group.groupId, String(item.id)),
+                  );
+                });
+              }
+            });
         });
     }
 

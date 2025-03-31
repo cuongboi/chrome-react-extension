@@ -30,6 +30,7 @@ const formSchema = z.object({
   start: z.string(),
   end: z.string(),
   progress: z.string(),
+  parentId: z.string(),
   sprintDuration: z.number(),
 });
 
@@ -41,7 +42,6 @@ export default function ColumnMap() {
       date: Object.entries(columns).map(
         ([key, value]) =>
           value.userDefined &&
-          value.visible &&
           value.dataType === 'date' && (
             <SelectItem value={key} key={key}>
               {value.name}
@@ -51,7 +51,6 @@ export default function ColumnMap() {
       number: Object.entries(columns).map(
         ([key, value]) =>
           value.userDefined &&
-          value.visible &&
           value.dataType === 'number' && (
             <SelectItem value={key} key={key}>
               {value.name}
@@ -68,6 +67,7 @@ export default function ColumnMap() {
       end: String(columnMap.end),
       progress: String(columnMap.progress),
       sprintDuration: Number(columnMap.sprintDuration || 14),
+      parentId: String(columnMap.parentId || ''),
     },
   });
 
@@ -156,6 +156,30 @@ export default function ColumnMap() {
               <FormDescription>
                 Column that contains the progress of the task. Data type must be
                 number with 0-100 range.
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="parentId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Parent Column</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <FormControl>
+                  <SelectTrigger className="w-full">
+                    {/* Create placeholder for progress column */}
+                    <SelectValue placeholder="Select as parent column" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>{columnOptions.number}</SelectContent>
+              </Select>
+              <FormDescription>
+                Column that contains the parent ID of the task. Data type must
+                be number.
               </FormDescription>
               <FormMessage />
             </FormItem>

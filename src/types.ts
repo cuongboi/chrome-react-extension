@@ -297,10 +297,11 @@ export interface TaskItem {
   contentType: string;
   Title: Title;
   Assignees: Assignee[];
-  Status: Status;
-  start: Start;
-  end: End;
-  progress: Progress;
+  Status: StatusValue;
+  start: ValueString;
+  end: ValueString;
+  progress: ValueNumber;
+  parentId: ValueNumber;
   group?: Group;
 }
 
@@ -316,19 +317,23 @@ export interface Title {
   stateReason: any;
 }
 
-export interface Status {
+export interface StatusValue {
   id: string;
 }
 
-export interface Start {
+export interface ValueString {
+  id: string;
+}
+
+export interface ValueString {
   value: string;
 }
 
-export interface End {
+export interface ValueString {
   value: string;
 }
 
-export interface Progress {
+export interface ValueNumber {
   value: number;
 }
 
