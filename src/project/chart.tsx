@@ -4,7 +4,7 @@ import React from 'react';
 import { GanttOriginal, type Task, ViewMode } from 'react-gantt-chart/lib';
 import { toast } from 'sonner';
 
-import { cn, stringToColorHash } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useProjectStore } from '@/storage/project';
 
 import { useFetchProject } from '../hook/useFetchProject';
@@ -13,7 +13,7 @@ import type { Assignee, TaskItem } from '../types';
 const createAssigneeInfo = (assignees: Assignee[]) => (
   <div className="flex flex-col">
     <div className="flex items-center gap-2">
-      <span className="text-xs font-normal text-gray-700">Assignee:</span>
+      <span>Assignee:</span>
       <div className="flex -space-x-[0.25rem]">
         {assignees.map((assignee) => (
           <img
@@ -36,11 +36,6 @@ const createTask = (item: TaskItem, projectId?: string): Task => ({
   start: startOfDay(new Date(item.start?.value)),
   end: endOfDay(new Date(item.end?.value)),
   progress: Number(item.progress?.value || 0),
-  styles: {
-    backgroundColor: stringToColorHash(
-      item.Assignees.map((assignee) => assignee.avatarUrl).join(''),
-    ),
-  },
   ...(projectId && { project: projectId }),
   info: createAssigneeInfo(item.Assignees),
 });
@@ -91,6 +86,13 @@ export const Chart: React.FC<{
             name: group.groupValue,
             start,
             end,
+            styles: {
+              backgroundColor: 'var(--borderColor-accent-muted)',
+              progressSelectedColor:
+                Date.now() - end.getTime() > 0
+                  ? 'var(--bgColor-neutral-emphasis)'
+                  : 'var(--borderColor-accent-emphasis)',
+            },
             progress,
             hideChildren: Date.now() - end.getTime() > 0,
           });

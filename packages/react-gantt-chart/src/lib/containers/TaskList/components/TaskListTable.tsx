@@ -131,7 +131,7 @@ const TaskListTable = (props: IProps & typeof defaultProps) => {
 
   return (
     // ROOT
-    <div style={rootStyle}>
+    <div className="gantt-table">
       {/* TABLE ROWS */}
       {tasks.map((t) => {
         // expander
@@ -196,6 +196,7 @@ const TaskListTable = (props: IProps & typeof defaultProps) => {
                   ...cellStyle,
                   minWidth: '120px',
                   maxWidth: '120px',
+                  textAlign: 'center',
                 }}
               >
                 &nbsp;{t.start.toLocaleDateString(locale, dateTimeOptions)}
@@ -209,6 +210,7 @@ const TaskListTable = (props: IProps & typeof defaultProps) => {
                   ...cellStyle,
                   minWidth: '120px',
                   maxWidth: '120px',
+                  textAlign: 'center',
                 }}
               >
                 &nbsp;{t.end.toLocaleDateString(locale, dateTimeOptions)}

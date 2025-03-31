@@ -1,9 +1,7 @@
 import { $, Glob } from 'bun';
-import { get } from 'lodash';
 import path from 'path';
 
 import components from '../components.json';
-import manifest from '../public/manifest.json';
 import './cwd';
 
 const CWD = process.cwd();
@@ -18,12 +16,6 @@ const FILE_EXTENSIONS = {
 } as const;
 
 const entrypoints = ['index.tsx'];
-
-if (get(manifest, 'content_scripts')) {
-  entrypoints.concat(
-    get(manifest, 'content_scripts', []).flatMap((script) => script.js),
-  );
-}
 
 const resolveEntryPoints = (entrypoints: string[]): string[] =>
   entrypoints.map((entrypoint) => `./src/${entrypoint}`);
@@ -58,8 +50,10 @@ const buildProject = async (): Promise<void> => {
   if (contentScriptFileExists) {
     const contentScriptFileContent = await Bun.file(contentScriptFile).text();
     const updatedContent = `(() => {${contentScriptFileContent}})();`.replace(
-      /\??(\.appendChild\()/g,
-      '?$1',
+      'head.appendChild(style)',
+      `setTimeout(() => {
+    document.body?.appendChild(style)
+  }, 1000)`,
     );
 
     await Bun.write(contentScriptFile, updatedContent);

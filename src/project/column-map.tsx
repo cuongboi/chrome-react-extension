@@ -166,7 +166,7 @@ export default function ColumnMap() {
           control={form.control}
           name="sprintDuration"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="sr-only">
               <FormLabel>Spint Duration</FormLabel>
               <InputNumber {...field} />
               <FormDescription>

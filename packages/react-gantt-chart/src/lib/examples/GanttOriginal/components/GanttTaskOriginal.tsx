@@ -78,7 +78,12 @@ const GanttTaskOriginal = (props: IProps & typeof defaultProps) => {
 
   return (
     // ROOT
-    <div style={rootStyle} ref={verticalGanttContainerRef} dir="ltr">
+    <div
+      style={rootStyle}
+      ref={verticalGanttContainerRef}
+      dir="ltr"
+      className="border-t border-border"
+    >
       {/* CALENDAR */}
       <svg
         height={calendarProps.headerHeight}

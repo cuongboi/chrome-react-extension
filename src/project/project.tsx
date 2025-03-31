@@ -1,5 +1,6 @@
 import { ChartGantt, LoaderIcon, SlidersVertical } from 'lucide-react';
 import React from 'react';
+import { Toaster } from 'sonner';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -32,7 +33,7 @@ export const ProjectManager: React.FC<{
           </button>
         ) : (
           columnMap.start && (
-            <button className={cn(siblingClass)} aria-label="grantt chart">
+            <button className={cn(siblingClass)} aria-label="gantt chart">
               <ChartGantt size={16} />
             </button>
           )
@@ -72,6 +73,7 @@ export const ProjectManager: React.FC<{
             <LoaderIcon className="animate-spin" />
           </div>
         )}
+        <Toaster />
       </SheetContent>
     </Sheet>
   );

@@ -391,7 +391,8 @@ const progressByX = (x: number, task: BarTask) => {
   else if (x <= task.x1) return 0;
   else {
     const barWidth = task.x2 - task.x1;
-    const progressPercent = Math.round(((x - task.x1) * 100) / barWidth);
+    const progressPercent =
+      Math.round(((x - task.x1) * 100) / (barWidth * 5)) * 5;
     return progressPercent;
   }
 };
@@ -418,6 +419,7 @@ export const getProgressPoint = (
     progressX,
     taskY + taskHeight - 8.66,
   ];
+
   return point.join(',');
 };
 

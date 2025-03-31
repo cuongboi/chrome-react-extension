@@ -171,14 +171,16 @@ const TaskItemOriginal = (props: IProps & typeof defaultProps) => {
         {taskItem}
 
         {/* TASK ITEM TEXT */}
-        <text
+        {/* <text
           style={isTextInside ? taskItemTextStyle : taskItemTextOutsideStyle}
           x={getX()}
           y={task.y + taskHeight * 0.5}
           ref={textRef}
         >
-          {task.name}
-        </text>
+          {task.name.length > 30
+            ? `${task.name.substring(0, 27)}...`
+            : task.name}
+        </text> */}
       </g>
     </svg>
   );

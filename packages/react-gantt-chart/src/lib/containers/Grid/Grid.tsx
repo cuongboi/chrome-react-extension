@@ -178,7 +178,7 @@ const Grid = (props: IProps & typeof defaultProps) => {
         <g>{ticks}</g>
 
         {/* TODAY */}
-        <g>{today}</g>
+        {/* <g>{today}</g> */}
       </g>
     </svg>
   );

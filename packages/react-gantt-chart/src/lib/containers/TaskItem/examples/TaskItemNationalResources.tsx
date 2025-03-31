@@ -187,7 +187,7 @@ const TaskItemNationalResources = (props: IProps & typeof defaultProps) => {
           y={task.y + taskHeight * 0.5}
           ref={textRef}
         >
-          {task.name}
+          + {task.name}
         </text>
       </g>
     </svg>

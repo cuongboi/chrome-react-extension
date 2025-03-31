@@ -73,7 +73,7 @@ const BarSmall = (props: IProps & typeof defaultProps) => {
       />
 
       {/* PROGRESS HANDLE */}
-      {/* <g>
+      <g>
         {isProgressChangeable === true && (
           <BarProgressHandle
             progressPoint={progressPoint}
@@ -89,7 +89,7 @@ const BarSmall = (props: IProps & typeof defaultProps) => {
             }}
           />
         )}
-      </g> */}
+      </g>
     </g>
   );
 };

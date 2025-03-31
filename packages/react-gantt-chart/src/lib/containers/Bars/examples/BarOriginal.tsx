@@ -33,6 +33,17 @@ const BarOriginal = (props: IProps) => {
   // *** USE STATE ***
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
+  const backgroundColor =
+    task.progress < 100
+      ? 'var(--bgColor-success-muted)'
+      : 'var(--bgColor-done-muted)';
+  const progressSelectedColor =
+    task.progress < 100
+      ? 'var(--bgColor-open-emphasis)'
+      : task.end.getTime() < Date.now()
+        ? 'var(--borderColor-default)'
+        : 'var(--bgColor-success-emphasis)';
+
   // *** CONDITIONALS ***
   // bar display
   const barDisplay = (
@@ -54,10 +65,12 @@ const BarOriginal = (props: IProps) => {
         ...barDisplayDefaultProps.barStyle,
         height: task.height,
         width: task.x2 - task.x1,
+        fill: backgroundColor,
       }}
       progressStyle={{
         ...barDisplayDefaultProps.progressStyle,
         height: task.height,
+        fill: progressSelectedColor,
       }}
     />
   );

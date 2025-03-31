@@ -47,7 +47,13 @@ const HorizontalScroll = (props: IProps & typeof defaultProps) => {
 
   return (
     // ROOT
-    <div style={rootStyle} dir="ltr" ref={scrollRef} onScroll={onScroll}>
+    <div
+      style={rootStyle}
+      dir="ltr"
+      ref={scrollRef}
+      onScroll={onScroll}
+      className="sr-only"
+    >
       {/* BODY */}
       <div style={bodyStyle} />
     </div>

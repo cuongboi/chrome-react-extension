@@ -17,7 +17,7 @@ type TOptionalPropsKeys = Exclude<OptionalKeys<IProps>, undefined>;
 type TOptionalProps = Required<Pick<IProps, TOptionalPropsKeys>>;
 
 export const defaultProps: TOptionalProps = {
-  columns: ['Name', 'From', 'To'],
+  columns: ['Title', 'Start', 'End'],
   // style
   rootStyle: {
     display: 'table',
@@ -69,7 +69,7 @@ const TaskListHeader = (props: IProps & typeof defaultProps) => {
         </div>
 
         {/* SEPARATOR */}
-        {index !== columns.length - 1 && <div style={columnSeparatorStyle} />}
+        {/* {index !== columns.length - 1 && <div style={columnSeparatorStyle} />} */}
       </React.Fragment>
     );
 
@@ -78,9 +78,9 @@ const TaskListHeader = (props: IProps & typeof defaultProps) => {
 
   return (
     // ROOT
-    <div style={rootStyle}>
+    <div className="gantt-table">
       {/* HEADER */}
-      <div style={headerStyle}>
+      <div style={headerStyle} className="border-b-0">
         {/* BODY */}
         {headerBody}
       </div>

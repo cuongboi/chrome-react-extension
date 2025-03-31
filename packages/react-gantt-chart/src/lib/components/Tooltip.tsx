@@ -1,4 +1,5 @@
 // *** NPM ***
+import { differenceInBusinessDays } from 'date-fns';
 import React, { useRef, useEffect, useState } from 'react';
 
 import { BarTask } from '../types/bar-task';
@@ -164,52 +165,21 @@ export default Tooltip;
 
 export const StandardTooltipContent = (props: ITooltipContentProps) => {
   // *** PROPS ***
-  const { task, fontFamily, fontSize } = props;
+  const { task } = props;
 
   return (
-    <div
-      style={{
-        background: '#fff',
-        padding: '12px',
-        boxShadow:
-          '0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23)',
-        fontFamily,
-        fontSize,
-      }}
-    >
+    <div className="text-xs text-muted-foreground bg-background w-60 p-3 flex flex-col gap-1 rounded-sm shadow-lg">
       {/* DATES RANGE */}
-      <b style={{ fontSize: fontSize + 6 }}>{`${
-        task.name
-      }: ${task.start.getDate()}-${
-        task.start.getMonth() + 1
-      }-${task.start.getFullYear()} - ${task.end.getDate()}-${
-        task.end.getMonth() + 1
-      }-${task.end.getFullYear()}`}</b>
+      <p className="font-bold mb-2">{task.name}</p>
 
       {/* DURATION */}
       {task.end.getTime() - task.start.getTime() !== 0 && (
-        <p
-          style={{
-            fontSize: '12px',
-            marginBottom: '6px',
-            color: '#666',
-          }}
-        >{`Duration: ${~~(
-          (task.end.getTime() - task.start.getTime()) /
-          (1000 * 60 * 60 * 24)
-        )} day(s)`}</p>
+        // Logic: working only with business days, start and end are inclusive
+        <span>{`Duration: ${differenceInBusinessDays(task.end, task.start) + 1} `}</span>
       )}
 
       {/* PROGRESS */}
-      <p
-        style={{
-          fontSize: '12px',
-          marginBottom: '6px',
-          color: '#666',
-        }}
-      >
-        {!!task.progress && `Progress: ${task.progress} %`}
-      </p>
+      <span>{!!task.progress && `Progress: ${task.progress} %`}</span>
 
       {task.info}
     </div>
