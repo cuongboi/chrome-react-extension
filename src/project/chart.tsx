@@ -66,7 +66,21 @@ export const Chart: React.FC<{
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const { items, groups, columnMap } = useFetchProject();
   const { updateApi } = useProjectStore();
-  const ref = React.useRef<HTMLDivElement>(null);
+
+  const [height, setHeight] = React.useState(0);
+
+  React.useLayoutEffect(() => {
+    const handleResize = () => {
+      setHeight(window.innerHeight);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   React.useEffect(() => {
     if (items.length === 0) return;
@@ -199,14 +213,14 @@ export const Chart: React.FC<{
   };
 
   return (
-    <div className={cn('w-full h-full p-4', className)} ref={ref}>
+    <div className={cn('w-full max-h-full p-4', className)}>
       {tasks.length > 0 ? (
         <GanttOriginal
           tasks={tasks}
           viewMode={ViewMode.Day}
-          columnWidth={50}
+          columnWidth={60}
           fontSize="14px"
-          ganttHeight={ref.current?.clientHeight || 500}
+          ganttHeight={height - 260 || 500}
           onExpanderClick={(task) =>
             setTasks(tasks.map((t) => (t.id === task.id ? task : t)))
           }

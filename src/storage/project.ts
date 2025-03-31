@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-import { ChromeLocalStorage } from 'zustand-chrome-storage';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 import type { Group, TaskItem } from '../types';
 
@@ -29,7 +28,6 @@ export const useProjectStore = create<{
     }),
     {
       name: 'project-storage',
-      storage: createJSONStorage(() => ChromeLocalStorage),
     },
   ),
 );
@@ -79,7 +77,6 @@ export const useColumnStore = create<{
     }),
     {
       name: 'column-storage',
-      storage: createJSONStorage(() => ChromeLocalStorage),
     },
   ),
 );

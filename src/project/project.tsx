@@ -57,15 +57,15 @@ export const ProjectManager: React.FC<{
               <ColumnMap />
             </ScrollArea>
           ) : (
-            <div className="flex-1 flex flex-col h-full overflow-y-auto">
-              <SheetHeader>
+            <div className="flex-1 h-full flex flex-col overflow-auto">
+              <SheetHeader className="flex-1">
                 <SheetTitle>Gantt Chart</SheetTitle>
                 <SheetDescription>
                   See your projects in a Gantt chart.
                 </SheetDescription>
               </SheetHeader>
 
-              <Chart className="flex-1 w-full h-full" />
+              <Chart className="flex-1 h-full" />
             </div>
           )
         ) : (

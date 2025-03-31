@@ -117,7 +117,9 @@ export function useFetchProject(config?: { watch?: boolean }) {
             };
           });
 
-          setItems(taskItems);
+          setItems(
+            taskItems.filter((item) => item.start?.value && item.end?.value),
+          );
         } catch (err) {
           console.error(err);
         } finally {

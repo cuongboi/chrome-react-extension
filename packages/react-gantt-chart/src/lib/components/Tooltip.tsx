@@ -173,10 +173,11 @@ export const StandardTooltipContent = (props: ITooltipContentProps) => {
       <p className="font-bold mb-2">{task.name}</p>
 
       {/* DURATION */}
-      {task.end.getTime() - task.start.getTime() !== 0 && (
+      {task.end.getTime() - task.start.getTime() !== 0 &&
         // Logic: working only with business days, start and end are inclusive
-        <span>{`Working days: ${differenceInBusinessDays(task.end, task.start)} `}</span>
-      )}
+        task.type === 'task' && (
+          <span>{`Working days: ${differenceInBusinessDays(task.end, task.start) + 1} `}</span>
+        )}
 
       {/* PROGRESS */}
       <span>{!!task.progress && `Progress: ${task.progress} %`}</span>
