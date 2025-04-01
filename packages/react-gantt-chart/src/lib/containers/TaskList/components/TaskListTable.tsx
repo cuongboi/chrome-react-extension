@@ -157,7 +157,10 @@ const TaskListTable = (props: IProps & typeof defaultProps) => {
 
         return (
           // TABLE ROW
-          <div style={rowStyle} key={`${t.id}row`}>
+          <div
+            style={{ ...rowStyle, color: 'var(--foreground)' }}
+            key={`${t.id}row`}
+          >
             {/* PRIMARY CELL */}
             <div
               style={{

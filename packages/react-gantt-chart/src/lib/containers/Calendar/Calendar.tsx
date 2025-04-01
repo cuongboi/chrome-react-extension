@@ -195,11 +195,7 @@ const Calendar = (props: IProps & typeof defaultProps) => {
 
       bottomValues.push(
         <text
-          style={
-            isWorkingDay(date)
-              ? bottomTextStyle
-              : { ...bottomTextStyle, fill: 'red' }
-          }
+          style={{ ...bottomTextStyle, fill: 'var(--foreground)' }}
           key={date.getTime()}
           y={headerHeight * 0.8}
           x={columnWidth * i + columnWidth * 0.5}
@@ -231,7 +227,10 @@ const Calendar = (props: IProps & typeof defaultProps) => {
             // styles
             rootStyle={calenderHeaderRootStyle}
             lineStyle={calenderHeaderLineStyle}
-            textStyle={calenderHeaderTextStyle}
+            textStyle={{
+              ...calenderHeaderTextStyle,
+              fill: 'var(--foreground)',
+            }}
           />,
         );
       }
@@ -307,7 +306,12 @@ const Calendar = (props: IProps & typeof defaultProps) => {
       {/* ROOT */}
       <g style={rootStyle}>
         <rect
-          style={headerStyle}
+          style={{
+            ...headerStyle,
+            fill: 'var(--background)',
+            stroke: 'var(--background)',
+            strokeWidth: 1.4,
+          }}
           x={0}
           y={0}
           width={columnWidth * dateSetup.dates.length}

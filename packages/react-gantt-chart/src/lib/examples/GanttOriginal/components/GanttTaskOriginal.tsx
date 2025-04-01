@@ -86,10 +86,11 @@ const GanttTaskOriginal = (props: IProps & typeof defaultProps) => {
     >
       {/* CALENDAR */}
       <svg
-        height={calendarProps.headerHeight}
+        height={calendarProps.headerHeight - 1}
         width={gridProps.svgWidth}
         fontFamily={barProps.fontFamily}
         xmlns="http://www.w3.org/2000/svg"
+        style={{ borderBottom: '1px solid var(--border)' }}
       >
         <Calendar {...calendarProps} />
       </svg>

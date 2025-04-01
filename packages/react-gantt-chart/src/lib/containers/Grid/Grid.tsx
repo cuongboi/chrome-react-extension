@@ -26,13 +26,13 @@ type TOptionalProps = Required<Pick<IProps, TOptionalPropsKeys>>;
 
 export const defaultProps: TOptionalProps = {
   gridRowStyle: {
-    fill: '#fff',
+    fill: 'var(--background)',
   },
   gridRowLineStyle: {
-    stroke: '#ebeff2',
+    stroke: 'var(--border)',
   },
   gridTickStyle: {
-    stroke: '#e6e4e4',
+    stroke: 'var(--border)',
   },
 };
 
@@ -117,7 +117,13 @@ const Grid = (props: IProps & typeof defaultProps) => {
       );
     } else if (isWeekend(date)) {
       ticks.push(
-        <rect x={tickX} y={0} width={columnWidth} height={y} fill="#f7f8fa" />,
+        <rect
+          x={tickX}
+          y={0}
+          width={columnWidth}
+          height={y}
+          fill="var(--muted)"
+        />,
       );
     }
 

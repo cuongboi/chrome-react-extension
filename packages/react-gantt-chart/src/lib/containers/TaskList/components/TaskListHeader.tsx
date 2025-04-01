@@ -61,8 +61,11 @@ const TaskListHeader = (props: IProps & typeof defaultProps) => {
         <div
           style={{
             ...columnStyle,
+            color: 'var(--foreground)',
             minWidth: index === 0 ? '400px' : '120px',
             maxWidth: index === 0 ? '400px' : '120px',
+            textAlign: index === 0 ? 'left' : 'center',
+            padding: '0.5rem 1rem',
           }}
         >
           {column}
@@ -80,7 +83,7 @@ const TaskListHeader = (props: IProps & typeof defaultProps) => {
     // ROOT
     <div className="gantt-table">
       {/* HEADER */}
-      <div style={headerStyle} className="border-b-0">
+      <div style={headerStyle} className="header">
         {/* BODY */}
         {headerBody}
       </div>

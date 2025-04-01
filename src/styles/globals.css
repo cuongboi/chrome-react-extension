@@ -128,3 +128,7 @@
 .gantt-table > div > div {
   @apply border-border border;
 }
+
+.gantt-table > .header > div {
+  @apply !border-b-0;
+}

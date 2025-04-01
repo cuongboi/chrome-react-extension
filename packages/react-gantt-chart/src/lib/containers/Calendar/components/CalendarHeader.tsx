@@ -54,7 +54,11 @@ const CalendarHeader = (props: IProps & typeof defaultProps): JSX.Element => {
     <g style={rootStyle}>
       {/* LINE */}
       <line
-        style={lineStyle}
+        style={{
+          ...lineStyle,
+          fill: 'var(--border)',
+          stroke: 'var(--border)',
+        }}
         key={value + 'line'}
         x1={x1Line}
         y1={y1Line}
