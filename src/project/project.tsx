@@ -13,15 +13,14 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
-import { useFetchProject } from '../hook/useFetchProject';
 import { Chart } from './chart';
 import ColumnMap from './column-map';
 
 export const ProjectManager: React.FC<{
   siblingClass: string;
   type: 'chart' | 'config';
-}> = ({ siblingClass, type = 'config' }) => {
-  const { isReady, columnMap } = useFetchProject({ watch: true });
+  isReady: boolean;
+}> = ({ siblingClass, type = 'config', isReady }) => {
   const isConfig = React.useMemo(() => type === 'config', [type]);
 
   return (
@@ -32,7 +31,7 @@ export const ProjectManager: React.FC<{
             <SlidersVertical size={16} />
           </button>
         ) : (
-          columnMap.start && (
+          isReady && (
             <button className={cn(siblingClass)} aria-label="gantt chart">
               <ChartGantt size={16} />
             </button>

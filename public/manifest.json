@@ -3,7 +3,7 @@
   "description": "Github Gantt Chart Support. THIS EXTENSION IS FOR BETA TESTING",
   "short_name": "Github Gantt Chart",
 
-  "version": "0.1.5",
+  "version": "0.1.6",
   "manifest_version": 3,
   "icons": {
     "36": "icons/36.png",
@@ -11,14 +11,19 @@
     "72": "icons/72.png",
     "96": "icons/96.png"
   },
+  "background": {
+    "service_worker": "background.js",
+    "permissions": ["scripting"]
+  },
   "content_scripts": [
     {
       "matches": ["*://github.com/*"],
       "css": ["main.css"],
       "js": ["index.js"],
-      "run_at": "document_start"
+      "run_at": "document_end"
     }
   ],
-  "permissions": ["scripting", "storage"],
+
+  "permissions": ["scripting", "storage", "webRequest", "tabs", "activeTab"],
   "host_permissions": ["*://github.com/*"]
 }

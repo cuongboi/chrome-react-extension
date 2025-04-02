@@ -15,7 +15,7 @@ const FILE_EXTENSIONS = {
   css: '.css',
 } as const;
 
-const entrypoints = ['index.tsx'];
+const entrypoints = ['index.tsx', 'background.ts'];
 
 const resolveEntryPoints = (entrypoints: string[]): string[] =>
   entrypoints.map((entrypoint) => `./src/${entrypoint}`);
@@ -41,23 +41,6 @@ const buildProject = async (): Promise<void> => {
 
   const glob = new Glob('**');
   const copyPromises: Promise<unknown>[] = [];
-
-  const contentScriptFile = OUT_DIR + '/index.js';
-
-  const contentScriptFileExists = await Bun.file(contentScriptFile).exists();
-
-  // Update content script file to (() => { ... })()
-  if (contentScriptFileExists) {
-    const contentScriptFileContent = await Bun.file(contentScriptFile).text();
-    const updatedContent = `(() => {${contentScriptFileContent}})();`.replace(
-      'head.appendChild(style)',
-      `setTimeout(() => {
-    document.body?.appendChild(style)
-  }, 1000)`,
-    );
-
-    await Bun.write(contentScriptFile, updatedContent);
-  }
 
   for await (const filename of glob.scan(PUBLIC_DIR)) {
     const srcPath = `${PUBLIC_DIR}/${filename}`;

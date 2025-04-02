@@ -1,7 +1,9 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 
+import { useFetchProject } from './hook/useFetchProject';
 import { ProjectManager } from './project/project';
+import { useColumnStore } from './storage/project';
 
 type AppContextType = unknown;
 
@@ -12,13 +14,16 @@ export const AppContext = React.createContext({
 export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
   children,
 }) => {
+  const { columnMap } = useColumnStore();
+  const { isReady } = useFetchProject({ watch: true });
+
   const buttons = React.useMemo<HTMLDivElement[]>(
     () => [document.createElement('div'), document.createElement('div')],
     [],
   );
   const [siblingClass, setSiblingClass] = React.useState<string>('');
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     setTimeout(() => {
       document.documentElement.classList.add(
         document.documentElement.getAttribute('data-color-mode') ?? 'light',
@@ -36,11 +41,19 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
   return (
     <AppContext.Provider value={{}}>
       {createPortal(
-        <ProjectManager siblingClass={siblingClass} type="chart" />,
+        <ProjectManager
+          siblingClass={siblingClass}
+          type="chart"
+          isReady={!!columnMap && isReady}
+        />,
         buttons[0],
       )}
       {createPortal(
-        <ProjectManager siblingClass={siblingClass} type="config" />,
+        <ProjectManager
+          siblingClass={siblingClass}
+          type="config"
+          isReady={!!columnMap && isReady}
+        />,
         buttons[1],
       )}
       {children}
