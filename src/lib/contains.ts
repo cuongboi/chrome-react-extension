@@ -14,4 +14,4 @@ export const GHRequestHeaders = {
   'x-requested-with': 'XMLHttpRequest',
 };
 
-export const GHRegex = /.*github\.com\/.*projects\/\d+\/views\/\d+.*/;
+export const GHRegex = /.*github\.com\/.*projects\/\d+.*/;

@@ -14,8 +14,8 @@ export const AppContext = React.createContext({
 export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
   children,
 }) => {
-  const { columnMap } = useColumnStore();
   const { isReady } = useFetchProject({ watch: true });
+  const { columnMap } = useColumnStore();
 
   const buttons = React.useMemo<HTMLDivElement[]>(
     () => [document.createElement('div'), document.createElement('div')],
@@ -44,7 +44,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
         <ProjectManager
           siblingClass={siblingClass}
           type="chart"
-          isReady={!!columnMap && isReady}
+          isReady={!!columnMap[window.location.pathname]}
         />,
         buttons[0],
       )}
@@ -52,7 +52,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
         <ProjectManager
           siblingClass={siblingClass}
           type="config"
-          isReady={!!columnMap && isReady}
+          isReady={isReady}
         />,
         buttons[1],
       )}

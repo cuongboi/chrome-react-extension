@@ -102,8 +102,9 @@ interface ChartProps {
 export const Chart: React.FC<ChartProps> = ({ className }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [height, setHeight] = useState(0);
-  const { columnMap } = useColumnStore();
+  const { columnMap: pagesColumnMap } = useColumnStore();
   const { updateApi, items, groups } = useProjectStore();
+  const columnMap = pagesColumnMap[window.location.pathname];
 
   // Window height effect
   useLayoutEffect(() => {

@@ -18,7 +18,7 @@ interface Config {
 // Utility functions
 const processItems = (
   itemGroupParsed: any,
-  columnMap: ColumnMap,
+  columnMap: ColumnMap[string],
   setGroups: (groups: Record<string, any>) => void,
 ): TaskItem[] => {
   const items: any[] = [];
@@ -86,7 +86,8 @@ export function useFetchProject(config: Config = {}) {
   const [isReady, setIsReady] = useState(false);
   const { setItems, items, groups, setGroups, setUpdateApi } =
     useProjectStore();
-  const { setColumns, columns, columnMap } = useColumnStore();
+  const { setColumns, columns, columnMap: mapWithPathname } = useColumnStore();
+  const columnMap = mapWithPathname[window.location.pathname];
 
   const fetchProjectData = async () => {
     try {
@@ -143,7 +144,7 @@ export function useFetchProject(config: Config = {}) {
       window.ev.removeAllListeners('extension:paginated_items');
       window.ev.on('extension:paginated_items', handleUpdateEvent);
     }
-  }, []);
+  }, [window.location.href]);
 
   return { isReady, items, groups, columns, columnMap };
 }

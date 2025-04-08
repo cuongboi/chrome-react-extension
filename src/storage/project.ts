@@ -32,24 +32,30 @@ export const useProjectStore = create<{
   ),
 );
 
-type ColumnMap = {
-  start: number;
-  end: number;
-  progress: number;
-  sprintDuration: number;
-  parentId?: number;
-};
+export type ColumnMap = Record<
+  string,
+  {
+    start: number;
+    end: number;
+    progress: number;
+    sprintDuration: number;
+    parentId?: number;
+  }
+>;
 export const useColumnStore = create<{
   columns: { [key: string]: any };
   setColumns: (columns: { [key: string]: any }) => void;
   columnMap: ColumnMap;
-  setColumnMap: (columnMap: {
-    start: number | string;
-    end: number | string;
-    progress: number | string;
-    sprintDuration: number | string;
-    parentId: number | string;
-  }) => void;
+  setColumnMap: (
+    url: string,
+    columnMap: {
+      start: number | string;
+      end: number | string;
+      progress: number | string;
+      sprintDuration: number | string;
+      parentId: number | string;
+    },
+  ) => void;
 }>()(
   persist(
     (set) => ({
@@ -57,22 +63,21 @@ export const useColumnStore = create<{
       setColumns: (columns: { [key: string]: any }) => {
         set({ columns });
       },
-      columnMap: {
-        start: 0,
-        end: 0,
-        progress: 0,
-        sprintDuration: 14,
-      } as ColumnMap,
-      setColumnMap: (columnMap) => {
-        set({
+      columnMap: {} as ColumnMap,
+      setColumnMap: (url, columnMap) => {
+        set((state) => ({
+          ...state,
           columnMap: {
-            start: Number(columnMap.start),
-            end: Number(columnMap.end),
-            progress: Number(columnMap.progress),
-            sprintDuration: Number(columnMap.sprintDuration),
-            parentId: Number(columnMap.parentId),
+            ...state.columnMap,
+            [url]: {
+              start: Number(columnMap.start),
+              end: Number(columnMap.end),
+              progress: Number(columnMap.progress),
+              sprintDuration: Number(columnMap.sprintDuration),
+              parentId: Number(columnMap.parentId),
+            },
           },
-        });
+        }));
       },
     }),
     {

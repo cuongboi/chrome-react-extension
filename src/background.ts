@@ -1,9 +1,7 @@
 import { GHRegex } from './lib/contains';
 
 const getMatchedTabs = async () => {
-  const tabs = await chrome.tabs.query({
-    currentWindow: true,
-  });
+  const tabs = await chrome.tabs.query({});
 
   const ghTabs = tabs.filter((tab) => {
     return tab.url?.match(GHRegex);

@@ -63,17 +63,19 @@ export default function ColumnMap() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      start: String(columnMap.start),
-      end: String(columnMap.end),
-      progress: String(columnMap.progress),
-      sprintDuration: Number(columnMap.sprintDuration || 14),
-      parentId: String(columnMap.parentId || ''),
+      start: String(columnMap[window.location.pathname]?.start),
+      end: String(columnMap[window.location.pathname]?.end),
+      progress: String(columnMap[window.location.pathname]?.progress),
+      sprintDuration: Number(
+        columnMap[window.location.pathname]?.sprintDuration || 14,
+      ),
+      parentId: String(columnMap[window.location.pathname]?.parentId || ''),
     },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      setColumnMap(values);
+      setColumnMap(window.location.pathname, values);
       setSaved(true);
       window.location.reload();
       toast.success('Column map saved successfully');
@@ -171,11 +173,13 @@ export default function ColumnMap() {
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger className="w-full">
-                    {/* Create placeholder for progress column */}
                     <SelectValue placeholder="Select as parent column" />
                   </SelectTrigger>
                 </FormControl>
-                <SelectContent>{columnOptions.number}</SelectContent>
+                <SelectContent>
+                  <SelectItem value="none">No Select</SelectItem>
+                  {columnOptions.number}
+                </SelectContent>
               </Select>
               <FormDescription>
                 Column that contains the parent ID of the task. Data type must
