@@ -7,5 +7,6 @@ export default tseslint.config({
   ignores: ['node_modules/*', '*/dist/*', '**/*.spec.ts'],
   rules: {
     '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-empty-object-type': 'off',
   },
 });

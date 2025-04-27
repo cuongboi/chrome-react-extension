@@ -2,21 +2,18 @@ import { addDays, endOfDay, startOfDay } from 'date-fns';
 import { Loader2Icon } from 'lucide-react';
 import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { GanttOriginal, type Task, ViewMode } from 'react-gantt-chart/lib';
-import { toast } from 'sonner';
 
 import { Badge } from '@/components/ui/badge';
-import { GHRequestHeaders } from '@/lib/contains';
-import { cn } from '@/lib/utils';
+import { cn, getStatusColor } from '@/lib/utils';
 import { useColumnStore, useProjectStore } from '@/storage/project';
 
 import type { TaskItem } from '../types';
 
-// Task Creation Helpers
 const createMoreInfo = (item: TaskItem): JSX.Element => {
   const { columns } = useColumnStore.getState();
   const status = columns.Status.settings.options.find(
     (option: any) => option.id === item.Status?.id,
-  ) as { color: string; description: string; name: string };
+  )! as { name: string };
 
   return (
     <>
@@ -39,22 +36,6 @@ const createMoreInfo = (item: TaskItem): JSX.Element => {
     </>
   );
 };
-
-const createTask = (
-  item: TaskItem,
-  projectId?: string,
-  parentId?: string,
-): Task => ({
-  type: 'task' as const,
-  id: String(item.id),
-  name: item.Title.title.raw,
-  start: startOfDay(new Date(item.start?.value)),
-  end: endOfDay(new Date(item.end?.value)),
-  progress: Number(item.progress?.value || 0),
-  dependencies: parentId ? [parentId] : [],
-  ...(projectId && { project: projectId }),
-  info: createMoreInfo(item),
-});
 
 // Project Task Creation
 const createProjectTask = (group: any, columnMap: any): Task => {
@@ -102,8 +83,8 @@ interface ChartProps {
 export const Chart: React.FC<ChartProps> = ({ className }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [height, setHeight] = useState(0);
-  const { columnMap: pagesColumnMap } = useColumnStore();
-  const { updateApi, items, groups } = useProjectStore();
+  const { columnMap: pagesColumnMap, columns } = useColumnStore();
+  const { items, groups } = useProjectStore();
   const columnMap = pagesColumnMap[window.location.pathname];
 
   // Window height effect
@@ -113,6 +94,33 @@ export const Chart: React.FC<ChartProps> = ({ className }) => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  const createTask = React.useCallback(
+    (item: TaskItem, projectId?: string, parentId?: string): Task => ({
+      type: 'task' as const,
+      id: String(item.id),
+      name: item.Title.title.raw,
+      title: item.Title,
+      start: startOfDay(new Date(item.start?.value)),
+      end: endOfDay(new Date(item.end?.value)),
+      progress: Number(item.progress?.value || 0),
+      status: columns.Status.settings.options.find(
+        (option: any) => option.id === item.Status?.id,
+      ),
+      actualStart: startOfDay(item.actualStart?.value),
+      actualEnd: endOfDay(item.actualEnd?.value),
+      dependencies: parentId ? [parentId] : [],
+      ...(projectId && { project: projectId }),
+      info: createMoreInfo(item),
+      styles: {
+        backgroundColor: getStatusColor(
+          item.Status.id,
+          columns.Status.settings.options,
+        ),
+      },
+    }),
+    [columns],
+  );
 
   // Task generation effect
   useEffect(() => {
@@ -163,6 +171,7 @@ export const Chart: React.FC<ChartProps> = ({ className }) => {
       newTasks: Task[],
     ) => {
       Object.values(groups)
+        .filter((group) => group.groupMetadata && group.groupValue)
         .sort(
           (a, b) =>
             new Date(a.groupMetadata.startDate).getTime() -
@@ -186,60 +195,33 @@ export const Chart: React.FC<ChartProps> = ({ className }) => {
     setTasks(generateTasks());
   }, [items, groups, columnMap]);
 
-  // Progress update handler
-  const handleProgressChange = async (task: Task) => {
-    const itemTask = items.find((item) => item.id === Number(task.id));
-    if (!itemTask) return;
-
-    try {
-      const response = await fetch(updateApi, {
-        headers: GHRequestHeaders,
-        method: 'PUT',
-        body: JSON.stringify({
-          memexProjectItemId: itemTask.id,
-          memexProjectColumnValues: [
-            { memexProjectColumnId: columnMap.progress, value: task.progress },
-          ],
-        }),
-        mode: 'cors',
-        credentials: 'include',
-      });
-
-      if (response.ok) {
-        toast.success('Progress updated successfully');
-      }
-    } catch {
-      toast.error('Failed to update progress');
-    }
-  };
-
   // Render
   const ganttConfig = {
     tasks,
     viewMode: ViewMode.Day as const,
     columnWidth: 60,
     fontSize: '14px',
-    ganttHeight: height - 260 || 500,
+    ganttHeight: height - 140,
     locale: 'ja-JP',
     fontFamily:
       '-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans",Helvetica,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji"',
   };
 
-  return (
-    <div className={cn('w-full max-h-full p-4', className)}>
-      {tasks.length > 0 ? (
-        <GanttOriginal
-          {...ganttConfig}
-          onExpanderClick={(task) =>
-            setTasks(tasks.map((t) => (t.id === task.id ? task : t)))
-          }
-          onProgressChange={handleProgressChange}
-        />
-      ) : (
-        <div className="flex items-center justify-center h-full">
-          <Loader2Icon className="animate-spin" />
-        </div>
-      )}
+  return tasks.length > 0 ? (
+    <div className={cn('w-full max-h-full', className)}>
+      <GanttOriginal
+        {...ganttConfig}
+        onExpanderClick={(task) =>
+          setTasks(tasks.map((t) => (t.id === task.id ? task : t)))
+        }
+        columnOptions={{
+          columns,
+        }}
+      />
+    </div>
+  ) : (
+    <div className="flex items-center justify-center h-full ">
+      <Loader2Icon className="animate-spin" />
     </div>
   );
 };

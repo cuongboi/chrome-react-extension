@@ -108,7 +108,12 @@ export const defaultProps: TOptionalProps = {
   spintDuration: 14,
 };
 
-const GanttOriginal = (props: IProps & typeof defaultProps) => {
+const GanttOriginal = (
+  props: IProps &
+    typeof defaultProps & {
+      columnOptions?: any;
+    },
+) => {
   // *** PROPS ***
   const {
     // general
@@ -152,6 +157,7 @@ const GanttOriginal = (props: IProps & typeof defaultProps) => {
     todayColor,
     TooltipContent,
     spintDuration,
+    columnOptions,
   } = props;
 
   // *** USE STATE ***
@@ -526,6 +532,7 @@ const GanttOriginal = (props: IProps & typeof defaultProps) => {
           ganttHeight={ganttHeight}
           scrollX={scrollX}
           scrollY={scrollY}
+          columnOptions={columnOptions}
         />
 
         {/* TOOLTIP */}

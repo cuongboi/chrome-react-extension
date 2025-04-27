@@ -97,3 +97,74 @@ export const delay = <T>(fn: (...args: any[]) => T, ms: number) => {
     }, ms);
   };
 };
+
+type ColorUnion =
+  | 'GRAY'
+  | 'RED'
+  | 'BLUE'
+  | 'GREEN'
+  | 'YELLOW'
+  | 'PURPLE'
+  | 'ORANGE'
+  | 'PINK'
+  | 'DEFAULT';
+
+export const convertColor = (color: ColorUnion) => {
+  switch (color) {
+    case 'GRAY':
+      return 'var(--borderColor-neutral-muted)';
+    case 'RED':
+      return 'var(--borderColor-danger-muted)';
+    case 'BLUE':
+      return 'var(--borderColor-accent-muted)';
+    case 'GREEN':
+      return 'var(--borderColor-success-muted)';
+    case 'YELLOW':
+      return 'var(--borderColor-attention-muted)';
+    case 'PURPLE':
+      return 'var(--borderColor-done-muted)';
+    case 'ORANGE':
+      return 'var(--borderColor-severe-muted)';
+    case 'PINK':
+      return 'var(--borderColor-sponsors-muted)';
+    default:
+      return 'var(--borderColor-neutral)';
+  }
+};
+
+export const getStatusColor = (
+  status: string,
+  options: { id: string; color: ColorUnion; [key: string]: string }[],
+) => {
+  const statusOption = (options ?? []).find((option) => option.id === status);
+  if (statusOption) {
+    return convertColor(statusOption.color);
+  }
+  return convertColor('DEFAULT');
+};
+
+export function deepEquals(a: any, b: any): boolean {
+  if (a === b) return true;
+
+  if (
+    a == null ||
+    b == null ||
+    typeof a !== 'object' ||
+    typeof b !== 'object'
+  ) {
+    return false;
+  }
+
+  const keysA = Object.keys(a);
+  const keysB = Object.keys(b);
+
+  if (keysA.length !== keysB.length) return false;
+
+  for (const key of keysA) {
+    if (!keysB.includes(key) || !deepEquals(a[key], b[key])) {
+      return false;
+    }
+  }
+
+  return true;
+}

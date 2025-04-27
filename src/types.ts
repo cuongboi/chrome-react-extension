@@ -298,11 +298,15 @@ export interface TaskItem {
   Title: Title;
   Assignees: Assignee[];
   Status: StatusValue;
+  Labels: ValueLabels[];
   start: ValueString;
   end: ValueString;
+  actualStart: ValueString;
+  actualEnd: ValueString;
   progress: ValueNumber;
   parentId: ValueNumber;
   group?: Group;
+  status: string;
 }
 
 export interface Title {
@@ -319,18 +323,25 @@ export interface Title {
 
 export interface StatusValue {
   id: string;
-}
-
-export interface ValueString {
-  id: string;
+  name: string;
+  color: string;
+  description: string;
+  nameHtml: string;
+  descriptionHtml: string;
 }
 
 export interface ValueString {
   value: string;
 }
 
-export interface ValueString {
-  value: string;
+export interface ValueLabels {
+  value: {
+    color: string;
+    id: number;
+    name: string;
+    nameHtml: string;
+    url: string;
+  }[];
 }
 
 export interface ValueNumber {

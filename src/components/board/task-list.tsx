@@ -1,0 +1,231 @@
+'use client';
+
+import { differenceInBusinessDays, format, parseISO } from 'date-fns';
+import React, { useState } from 'react';
+
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { useColumnStore } from '@/storage/project';
+import type { TaskItem } from '@/types';
+
+import { getTasksForSprint } from './utils';
+
+interface TaskListProps {
+  selectedSprint: string;
+  items: TaskItem[];
+}
+
+export function TaskList({ selectedSprint, items }: TaskListProps) {
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const { columnMap: mapWithPathname } = useColumnStore();
+  const columnMap = mapWithPathname[window.location.pathname];
+  const tasks = React.useMemo(() => {
+    const allTasks = getTasksForSprint(items, selectedSprint);
+    if (statusFilter === 'all') {
+      return allTasks;
+    }
+    return allTasks.filter((task) => {
+      const status = columnMap.statuses.find(
+        (option) => option.value === task.Status?.id,
+      );
+      return status?.value === statusFilter;
+    });
+  }, [items, selectedSprint, statusFilter, columnMap]);
+
+  return (
+    <TooltipProvider>
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+            <div>
+              <CardTitle>Sprint Tasks</CardTitle>
+              <CardDescription>All tasks in the current sprint</CardDescription>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                {columnMap.statuses.map((status) => (
+                  <SelectItem value={status.value} key={status.value}>
+                    {status.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Task</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Assignees
+                </TableHead>
+                <TableHead className="flex justify-center items-center">
+                  Story Points
+                </TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Ideal Dates
+                </TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Actual Dates
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tasks.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-6 text-muted-foreground"
+                  >
+                    No tasks found with the selected filter
+                  </TableCell>
+                </TableRow>
+              ) : (
+                tasks.map((task) => {
+                  const title =
+                    task.Title.title?.raw ||
+                    task.Title.title?.html ||
+                    `Task #${task.id}`;
+
+                  return (
+                    <TableRow key={task.id}>
+                      <TableCell className="font-medium">
+                        <div className="flex flex-col">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="truncate max-w-[250px] md:max-w-[350px]">
+                                {title}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-sm">{title}</p>
+                            </TooltipContent>
+                          </Tooltip>
+
+                          {task.parentId && (
+                            <span className="text-xs text-muted-foreground">
+                              Subtask of #{task.parentId.value}
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className="rounded-md px-2 py-1 text-xs font-medium border"
+                          style={{
+                            color: task.Status.color
+                              .replace('border', 'fg')
+                              .replace('-muted', ''),
+                            backgroundColor: task.Status.color.replace(
+                              'border',
+                              'bg',
+                            ),
+                            borderColor: task.Status.color.replace(
+                              '-muted',
+                              '',
+                            ),
+                          }}
+                        >
+                          {task.Status.name}
+                        </span>
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <div className="flex -space-x-2">
+                          {task.Assignees &&
+                            task.Assignees.map((assignee) => (
+                              <Tooltip key={assignee.id}>
+                                <TooltipTrigger asChild>
+                                  <img
+                                    className="ring-background rounded-full ring-1"
+                                    key={assignee.id}
+                                    src={assignee.avatarUrl}
+                                    width={20}
+                                    height={20}
+                                    alt={`${assignee.id} avatar`}
+                                  />
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>{assignee.login}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            ))}
+                        </div>
+                      </TableCell>
+                      <TableCell className="flex justify-center">
+                        {differenceInBusinessDays(
+                          task.end.value,
+                          task.start.value,
+                        ) + 1}
+                      </TableCell>
+                      <TableCell className="hidden md:table-cell">
+                        <span className="text-xs text-muted-foreground">
+                          {task.start
+                            ? format(parseISO(task.start.value), 'yyyy-MM-dd')
+                            : 'Not started'}
+                          {' - '}
+                          {task.end
+                            ? format(parseISO(task.end.value), 'yyyy-MM-dd')
+                            : 'Not ended'}
+                        </span>
+                      </TableCell>
+
+                      <TableCell className="hidden md:table-cell">
+                        <span className="text-xs text-muted-foreground">
+                          {task.actualStart
+                            ? format(
+                                parseISO(task.actualStart.value),
+                                'yyyy-MM-dd',
+                              )
+                            : 'Not started'}
+                          {' - '}
+                          {task.actualEnd
+                            ? format(
+                                parseISO(task.actualEnd.value),
+                                'yyyy-MM-dd',
+                              )
+                            : 'Not ended'}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </TooltipProvider>
+  );
+}

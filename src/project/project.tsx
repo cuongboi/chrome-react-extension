@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
-import { Chart } from './chart';
+import { Board } from './board';
 import ColumnMap from './column-map';
 
 export const ProjectManager: React.FC<{
@@ -39,9 +39,11 @@ export const ProjectManager: React.FC<{
         )}
       </SheetTrigger>
       <SheetContent
-        className="flex flex-col h-full w-full"
+        className="flex flex-col h-screen w-full gap-0"
         style={{
           maxWidth: isConfig ? '30%' : '100%',
+          // @ts-expect-error css variable
+          '--sheet-content-height': 'calc(100vh - var(--base-size-4)*23)',
         }}
       >
         {isReady ? (
@@ -50,22 +52,13 @@ export const ProjectManager: React.FC<{
               <SheetHeader>
                 <SheetTitle>Config your columns map</SheetTitle>
                 <SheetDescription>
-                  Make your columns map to the Gantt chart.
+                  Make your columns map to the Dashboard & Gantt chart.
                 </SheetDescription>
               </SheetHeader>
               <ColumnMap />
             </ScrollArea>
           ) : (
-            <div className="flex-1 h-full flex flex-col overflow-auto">
-              <SheetHeader className="flex-1">
-                <SheetTitle>Gantt Chart</SheetTitle>
-                <SheetDescription>
-                  See your projects in a Gantt chart.
-                </SheetDescription>
-              </SheetHeader>
-
-              <Chart className="flex-1 h-full" />
-            </div>
+            <Board />
           )
         ) : (
           <div className="flex items-center justify-center flex-1">

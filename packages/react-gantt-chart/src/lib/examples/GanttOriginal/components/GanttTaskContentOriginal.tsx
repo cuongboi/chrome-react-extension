@@ -34,6 +34,7 @@ export type IProps = {
   setGanttEvent: (value: GanttEvent) => void;
   setFailedTask: (value: BarTask | null) => void;
   setSelectedTask: (taskId: string) => void;
+  columnOptions?: any;
 } & EventOption;
 
 const GanttTaskContentOriginal = (props: IProps) => {
@@ -60,6 +61,7 @@ const GanttTaskContentOriginal = (props: IProps) => {
     onProgressChange,
     onDoubleClick,
     onDelete,
+    columnOptions,
   } = props;
 
   // *** USE STATE ***
@@ -308,6 +310,7 @@ const GanttTaskContentOriginal = (props: IProps) => {
               key={task.id}
               isSelected={!!selectedTask && task.id === selectedTask.id}
               rtl={rtl}
+              options={columnOptions}
             />
           );
         })}

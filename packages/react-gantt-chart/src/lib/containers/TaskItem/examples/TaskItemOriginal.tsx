@@ -51,7 +51,9 @@ export const defaultProps: TOptionalProps = {
   },
 };
 
-const TaskItemOriginal = (props: IProps & typeof defaultProps) => {
+const TaskItemOriginal = (
+  props: IProps & typeof defaultProps & { options?: any },
+) => {
   // *** PROPS ***
   const {
     task,
@@ -66,6 +68,7 @@ const TaskItemOriginal = (props: IProps & typeof defaultProps) => {
     // styles
     taskItemTextStyle,
     taskItemTextOutsideStyle,
+    options,
   } = props;
 
   // *** USE STATE ***
@@ -128,6 +131,7 @@ const TaskItemOriginal = (props: IProps & typeof defaultProps) => {
             isDateChangeable={isDateChangeable}
             isProgressChangeable={isProgressChangeable}
             onEventStart={onEventStart}
+            options={options}
           />
         ));
         break;
@@ -138,6 +142,11 @@ const TaskItemOriginal = (props: IProps & typeof defaultProps) => {
   useEffect(() => {
     if (textRef.current) {
       setIsTextInside(textRef.current.getBBox().width < task.x2 - task.x1);
+      textRef.current.addEventListener('click', () => {
+        if (task.title?.url) {
+          window.open(task.title.url, '_blank');
+        }
+      });
     }
   }, [textRef, task]);
 
@@ -171,16 +180,23 @@ const TaskItemOriginal = (props: IProps & typeof defaultProps) => {
         {taskItem}
 
         {/* TASK ITEM TEXT */}
-        {/* <text
-          style={isTextInside ? taskItemTextStyle : taskItemTextOutsideStyle}
-          x={getX()}
-          y={task.y + taskHeight * 0.5}
-          ref={textRef}
-        >
-          {task.name.length > 30
-            ? `${task.name.substring(0, 27)}...`
-            : task.name}
-        </text> */}
+        {task.title?.number && (
+          <text
+            style={{
+              ...(isTextInside ? taskItemTextStyle : taskItemTextOutsideStyle),
+              fontWeight: 'bold',
+              fontSize: '0.8rem',
+              fill: task.styles.backgroundColor
+                .replace('borderColor', 'fgColor')
+                .replace('-muted', ''),
+            }}
+            x={getX()}
+            y={task.y + taskHeight * 0.5}
+            ref={textRef}
+          >
+            {/* {task.status.name} */}
+          </text>
+        )}
       </g>
     </svg>
   );

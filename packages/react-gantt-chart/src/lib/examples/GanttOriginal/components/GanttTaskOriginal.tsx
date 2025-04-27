@@ -41,7 +41,12 @@ export const defaultProps: TOptionalProps = {
   },
 };
 
-const GanttTaskOriginal = (props: IProps & typeof defaultProps) => {
+const GanttTaskOriginal = (
+  props: IProps &
+    typeof defaultProps & {
+      columnOptions?: any;
+    },
+) => {
   // *** PROPS ***
   const {
     gridProps,
@@ -53,6 +58,7 @@ const GanttTaskOriginal = (props: IProps & typeof defaultProps) => {
     // style
     rootStyle,
     contentStyle,
+    columnOptions,
   } = props;
 
   // *** USE REF ***
@@ -90,7 +96,10 @@ const GanttTaskOriginal = (props: IProps & typeof defaultProps) => {
         width={gridProps.svgWidth}
         fontFamily={barProps.fontFamily}
         xmlns="http://www.w3.org/2000/svg"
-        style={{ borderBottom: '1px solid var(--border)' }}
+        style={{
+          borderBottom: '1px solid var(--border)',
+          maxHeight: 'var(--sheet-content-height)',
+        }}
       >
         <Calendar {...calendarProps} />
       </svg>
@@ -113,7 +122,10 @@ const GanttTaskOriginal = (props: IProps & typeof defaultProps) => {
         >
           <Grid {...gridProps} />
 
-          <GanttTaskContentOriginal {...newBarProps} />
+          <GanttTaskContentOriginal
+            {...newBarProps}
+            columnOptions={columnOptions}
+          />
         </svg>
       </div>
     </div>

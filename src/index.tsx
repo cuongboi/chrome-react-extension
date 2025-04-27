@@ -1,4 +1,5 @@
 import EventEmitter from 'events';
+import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import { AppProvider } from './provider';
@@ -10,6 +11,9 @@ declare global {
 }
 
 window.ev = new EventEmitter();
+
+// Overide console.error to prevent warnings from being shown in the console
+console.error = () => {};
 
 chrome.runtime.onMessage.addListener((message) => {
   if (message.type === 'extension:paginated_items') {
@@ -26,5 +30,9 @@ if (body) {
   body.appendChild(app);
 
   const appRoot = createRoot(app);
-  appRoot.render(<AppProvider />);
+  appRoot.render(
+    <StrictMode>
+      <AppProvider />
+    </StrictMode>,
+  );
 }

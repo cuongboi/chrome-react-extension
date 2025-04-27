@@ -119,6 +119,26 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  .scrollbar::-webkit-scrollbar {
+    @apply block h-1.5 w-1.5; /* Consistent size for horizontal/vertical scrollbars */
+  }
+
+  .scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent; /* Transparent track for minimal visual noise */
+  }
+
+  .scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-border hover:bg-border min-h-8 min-w-8 rounded-full transition-all duration-200 ease-linear; /* Rounded thumb for a modern look */
+  }
+
+  .scrollbar::-webkit-scrollbar-corner {
+    @apply bg-transparent; /* Transparent corner for cleaner look */
+  }
+
+  .scrollbar:not(:hover)::-webkit-scrollbar-thumb {
+    @apply bg-border/0;
+  }
 }
 
 .gantt-table {
@@ -131,4 +151,17 @@
 
 .gantt-table > .header > div {
   @apply !border-b-0;
+}
+
+/* Dashboard */
+.dashboard [data-slot='card'] {
+  padding-top: calc(var(--spacing) * 4) !important;
+  padding-bottom: calc(var(--spacing) * 4) !important;
+  gap: calc(var(--spacing) * 2);
+}
+
+.dashboard [data-slot='card-header'],
+.dashboard [data-slot='card-content'] {
+  padding-left: calc(var(--spacing) * 4) !important;
+  padding-right: calc(var(--spacing) * 4) !important;
 }

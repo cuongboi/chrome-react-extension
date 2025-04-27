@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-import type { Group, TaskItem } from '../types';
+import type { Group, StatusValue, TaskItem } from '../types';
 
 export const useProjectStore = create<{
   items: TaskItem[];
@@ -10,6 +10,8 @@ export const useProjectStore = create<{
   setGroups: (groups: { [key: string]: Group }) => void;
   updateApi: string;
   setUpdateApi: (updateApi: string) => void;
+  boarditems: TaskItem[];
+  setBoardItems: (items: TaskItem[], columnMap: ColumnMapValue) => void;
 }>()(
   persist(
     (set) => ({
@@ -25,6 +27,15 @@ export const useProjectStore = create<{
       setUpdateApi: (updateApi: string) => {
         set({ updateApi });
       },
+      boarditems: [],
+      setBoardItems: (items, columnMap) => {
+        const allowStatuses = columnMap.statuses.map((item) => item.value);
+        const boarditems = items.filter((item) => {
+          return allowStatuses.includes(item.Status.id);
+        });
+
+        set({ boarditems });
+      },
     }),
     {
       name: 'project-storage',
@@ -32,33 +43,40 @@ export const useProjectStore = create<{
   ),
 );
 
-export type ColumnMap = Record<
-  string,
-  {
-    start: number;
-    end: number;
-    progress: number;
-    sprintDuration: number;
-    parentId?: number;
-  }
->;
+export const useSprint = create<{
+  currentSprint: string | null;
+  setCurrentSprint: (sprint: string | null) => void;
+}>()((set) => ({
+  currentSprint: null,
+  setCurrentSprint: (sprint: string | null) => {
+    set({ currentSprint: sprint });
+  },
+}));
+
+type MultipleSelectColumn = { value: string; label: string };
+export type ColumnMapValue = {
+  start: MultipleSelectColumn[];
+  end: MultipleSelectColumn[];
+  parentId: string;
+  actualStart: string;
+  actualEnd: string;
+  statusStart: string;
+  statusEnd: string;
+  statuses: MultipleSelectColumn[];
+};
+
+export type ColumnMap = Record<string, ColumnMapValue>;
+
 export const useColumnStore = create<{
   columns: { [key: string]: any };
   setColumns: (columns: { [key: string]: any }) => void;
   columnMap: ColumnMap;
-  setColumnMap: (
-    url: string,
-    columnMap: {
-      start: number | string;
-      end: number | string;
-      progress: number | string;
-      sprintDuration: number | string;
-      parentId: number | string;
-    },
-  ) => void;
+  setColumnMap: (url: string, columnMap: ColumnMapValue) => void;
+  getStatus: (statusId: string) => StatusValue;
+  getColumnMap: () => ColumnMapValue;
 }>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       columns: {},
       setColumns: (columns: { [key: string]: any }) => {
         set({ columns });
@@ -70,14 +88,33 @@ export const useColumnStore = create<{
           columnMap: {
             ...state.columnMap,
             [url]: {
-              start: Number(columnMap.start),
-              end: Number(columnMap.end),
-              progress: Number(columnMap.progress),
-              sprintDuration: Number(columnMap.sprintDuration),
-              parentId: Number(columnMap.parentId),
+              ...state.columnMap[url],
+              ...columnMap,
             },
           },
         }));
+      },
+      getStatus: (statusId) => {
+        const statusOptions = get().columns.Status.settings.options;
+        const status = statusOptions.find(
+          (option: any) => option.id === statusId,
+        )!;
+        return status ?? {};
+      },
+      getColumnMap: () => {
+        const columnMap = get().columnMap[window.location.href];
+        return (
+          columnMap ?? {
+            start: [],
+            end: [],
+            parentId: '',
+            actualStart: '',
+            actualEnd: '',
+            statusStart: '',
+            statusEnd: '',
+            statuses: [],
+          }
+        );
       },
     }),
     {

@@ -21,6 +21,8 @@ export interface Task {
   name: string;
   start: Date;
   end: Date;
+  actualStart?: Date;
+  actualEnd?: Date;
   /**
    * From 0 to 100
    */
@@ -31,11 +33,23 @@ export interface Task {
     progressColor?: string;
     progressSelectedColor?: string;
   };
+  title?: {
+    url: string;
+    state: string;
+    title: {
+      raw: string;
+      html: string;
+    };
+    number: number;
+    issueId: number;
+    stateReason: any;
+  };
   isDisabled?: boolean;
   project?: string;
   dependencies?: string[];
   hideChildren?: boolean;
   info?: React.ReactNode;
+  status?: any;
 }
 
 export interface EventOption {

@@ -82,7 +82,7 @@ const Bar = (props: IProps & typeof defaultProps) => {
         )}
 
         {/* PROGRESS HANDLES */}
-        {isProgressChangeable === true && barProgressHandle}
+        {/* {isProgressChangeable === true && barProgressHandle} */}
       </g>
     </g>
   );

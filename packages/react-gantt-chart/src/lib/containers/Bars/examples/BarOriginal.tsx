@@ -23,20 +23,24 @@ export interface IProps {
     selectedTask: BarTask,
     event?: React.MouseEvent | React.KeyboardEvent,
   ) => any;
+  options?: any;
 }
 
 const BarOriginal = (props: IProps) => {
   // *** PROPS ***
-  const { task, rtl, isDateChangeable, isProgressChangeable, onEventStart } =
-    props;
+  const {
+    task,
+    rtl,
+    isDateChangeable,
+    isProgressChangeable,
+    onEventStart,
+    options,
+  } = props;
 
   // *** USE STATE ***
   const [isHovered, setIsHovered] = useState<boolean>(false);
 
-  const backgroundColor =
-    task.progress < 100
-      ? 'var(--bgColor-success-muted)'
-      : 'var(--bgColor-done-muted)';
+  const backgroundColor = 'var(--fgColor-neutral)';
   const progressSelectedColor =
     task.progress < 100
       ? 'var(--bgColor-open-emphasis)'
@@ -60,12 +64,13 @@ const BarOriginal = (props: IProps) => {
       rootStyle={{
         ...barDisplayDefaultProps.rootStyle,
         height: task.height,
+        background: 'var(--bgColor-white)',
       }}
       barStyle={{
         ...barDisplayDefaultProps.barStyle,
         height: task.height,
         width: task.x2 - task.x1,
-        fill: backgroundColor,
+        fill: task.styles?.backgroundColor ?? backgroundColor,
       }}
       progressStyle={{
         ...barDisplayDefaultProps.progressStyle,
