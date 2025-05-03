@@ -7,10 +7,12 @@ import { AppProvider } from './provider';
 declare global {
   interface Window {
     ev: EventEmitter;
+    holidays: Date[];
   }
 }
 
 window.ev = new EventEmitter();
+window.holidays = [];
 
 // Overide console.error to prevent warnings from being shown in the console
 console.error = () => {};

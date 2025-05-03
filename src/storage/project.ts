@@ -3,6 +3,11 @@ import { persist } from 'zustand/middleware';
 
 import type { Group, StatusValue, TaskItem } from '../types';
 
+export type ProjectConfig = {
+  holidays: Date[];
+  [key: string]: any;
+};
+
 export const useProjectStore = create<{
   items: TaskItem[];
   setItems: (items: TaskItem[]) => void;
@@ -12,6 +17,8 @@ export const useProjectStore = create<{
   setUpdateApi: (updateApi: string) => void;
   boarditems: TaskItem[];
   setBoardItems: (items: TaskItem[], columnMap: ColumnMapValue) => void;
+  config: ProjectConfig;
+  setConfig: (config: ProjectConfig) => void;
 }>()(
   persist(
     (set) => ({
@@ -36,6 +43,10 @@ export const useProjectStore = create<{
 
         set({ boarditems });
       },
+      config: {} as ProjectConfig,
+      setConfig: (config: ProjectConfig) => {
+        set({ config });
+      },
     }),
     {
       name: 'project-storage',
@@ -53,16 +64,14 @@ export const useSprint = create<{
   },
 }));
 
-type MultipleSelectColumn = { value: string; label: string };
 export type ColumnMapValue = {
-  start: MultipleSelectColumn[];
-  end: MultipleSelectColumn[];
+  start: string;
+  end: string;
   parentId: string;
   actualStart: string;
   actualEnd: string;
-  statusStart: string;
-  statusEnd: string;
-  statuses: MultipleSelectColumn[];
+  statuses: { value: string; label: string }[];
+  holidays: Date[];
 };
 
 export type ColumnMap = Record<string, ColumnMapValue>;
@@ -70,10 +79,11 @@ export type ColumnMap = Record<string, ColumnMapValue>;
 export const useColumnStore = create<{
   columns: { [key: string]: any };
   setColumns: (columns: { [key: string]: any }) => void;
-  columnMap: ColumnMap;
-  setColumnMap: (url: string, columnMap: ColumnMapValue) => void;
+  columnMap: ColumnMapValue;
+  setColumnMap: (columnMap: ColumnMapValue) => void;
   getStatus: (statusId: string) => StatusValue;
-  getColumnMap: () => ColumnMapValue;
+  configDescription: string;
+  setConfigDescription: (description: string) => void;
 }>()(
   persist(
     (set, get) => ({
@@ -81,16 +91,13 @@ export const useColumnStore = create<{
       setColumns: (columns: { [key: string]: any }) => {
         set({ columns });
       },
-      columnMap: {} as ColumnMap,
-      setColumnMap: (url, columnMap) => {
+      columnMap: {} as ColumnMapValue,
+      setColumnMap: (columnMap) => {
         set((state) => ({
           ...state,
           columnMap: {
             ...state.columnMap,
-            [url]: {
-              ...state.columnMap[url],
-              ...columnMap,
-            },
+            ...columnMap,
           },
         }));
       },
@@ -101,20 +108,9 @@ export const useColumnStore = create<{
         )!;
         return status ?? {};
       },
-      getColumnMap: () => {
-        const columnMap = get().columnMap[window.location.href];
-        return (
-          columnMap ?? {
-            start: [],
-            end: [],
-            parentId: '',
-            actualStart: '',
-            actualEnd: '',
-            statusStart: '',
-            statusEnd: '',
-            statuses: [],
-          }
-        );
+      configDescription: '',
+      setConfigDescription: (description: string) => {
+        set({ configDescription: description });
       },
     }),
     {

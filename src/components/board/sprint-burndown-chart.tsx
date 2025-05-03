@@ -1,6 +1,15 @@
 'use client';
 
-import { CartesianGrid, Line, LineChart, XAxis, YAxis } from 'recharts';
+import { addDays, format } from 'date-fns';
+import React from 'react';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ReferenceLine,
+  XAxis,
+  YAxis,
+} from 'recharts';
 
 import {
   Card,
@@ -14,9 +23,10 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
+import { useProjectStore } from '@/storage/project';
 import type { TaskItem } from '@/types';
 
-import { getBurndownData } from './utils';
+import { getBurndownData, getSprint } from './utils';
 
 interface SprintBurndownChartProps {
   selectedSprint: string;
@@ -27,7 +37,12 @@ export function SprintBurndownChart({
   selectedSprint,
   items,
 }: SprintBurndownChartProps) {
+  const { groups } = useProjectStore();
   const data = getBurndownData(items, selectedSprint);
+  const currentSprint = React.useMemo(
+    () => getSprint(groups, selectedSprint),
+    [groups, selectedSprint],
+  );
 
   return (
     <Card>
@@ -90,6 +105,18 @@ export function SprintBurndownChart({
                 strokeDasharray="5 5"
                 dot={false}
                 stroke="var(--borderColor-accent-emphasis)"
+              />
+              <ReferenceLine
+                x={format(
+                  addDays(
+                    currentSprint.groupMetadata.startDate,
+                    currentSprint.groupMetadata.duration - 1,
+                  ),
+                  'yyyy-MM-dd',
+                )}
+                stroke="red"
+                strokeDasharray="3 3"
+                strokeWidth={1}
               />
             </LineChart>
           </ChartContainer>

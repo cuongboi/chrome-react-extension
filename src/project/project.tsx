@@ -27,12 +27,20 @@ export const ProjectManager: React.FC<{
     <Sheet>
       <SheetTrigger asChild>
         {isConfig ? (
-          <button className={cn(siblingClass)} aria-label="config columns map">
+          <button
+            className={cn(siblingClass)}
+            aria-label="config columns map"
+            data-variant="default"
+          >
             <SlidersVertical size={16} />
           </button>
         ) : (
           isReady && (
-            <button className={cn(siblingClass)} aria-label="gantt chart">
+            <button
+              className={cn(siblingClass)}
+              aria-label="gantt chart"
+              data-variant="default"
+            >
               <ChartGantt size={16} />
             </button>
           )

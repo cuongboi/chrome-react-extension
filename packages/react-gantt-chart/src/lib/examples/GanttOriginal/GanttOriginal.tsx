@@ -112,6 +112,7 @@ const GanttOriginal = (
   props: IProps &
     typeof defaultProps & {
       columnOptions?: any;
+      holidays?: Date[];
     },
 ) => {
   // *** PROPS ***
@@ -158,6 +159,7 @@ const GanttOriginal = (
     TooltipContent,
     spintDuration,
     columnOptions,
+    holidays = [],
   } = props;
 
   // *** USE STATE ***
@@ -422,6 +424,7 @@ const GanttOriginal = (
     dates: dateSetup.dates,
     todayColor,
     rtl,
+    holidays,
   };
 
   const calendarProps: CalendarProps = {

@@ -186,9 +186,7 @@ const TaskItemOriginal = (
               ...(isTextInside ? taskItemTextStyle : taskItemTextOutsideStyle),
               fontWeight: 'bold',
               fontSize: '0.8rem',
-              fill: task.styles.backgroundColor
-                .replace('borderColor', 'fgColor')
-                .replace('-muted', ''),
+              fill: task.styles.backgroundColor.replace('-muted', ''),
             }}
             x={getX()}
             y={task.y + taskHeight * 0.5}

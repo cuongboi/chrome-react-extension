@@ -83,9 +83,8 @@ interface ChartProps {
 export const Chart: React.FC<ChartProps> = ({ className }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [height, setHeight] = useState(0);
-  const { columnMap: pagesColumnMap, columns } = useColumnStore();
+  const { columnMap, columns } = useColumnStore();
   const { items, groups } = useProjectStore();
-  const columnMap = pagesColumnMap[window.location.pathname];
 
   // Window height effect
   useLayoutEffect(() => {
@@ -124,72 +123,74 @@ export const Chart: React.FC<ChartProps> = ({ className }) => {
 
   // Task generation effect
   useEffect(() => {
-    if (!items.length) return;
+    if (!items?.length) return;
 
     const generateTasks = () => {
-      const newTasks: Task[] = [];
-      const noParentItems = items.filter((item) => !item.parentId?.value);
-      const withParentItems = items
-        .filter((item) => item.parentId?.value)
-        .reduce(
-          (acc, item) => {
-            const parentId = item.parentId?.value;
-            acc[parentId] = acc[parentId] || [];
-            acc[parentId].push(item);
-            return acc;
-          },
-          {} as Record<string, TaskItem[]>,
+      const sortedItems = items
+        .filter((item) => item.start?.value && item.end?.value)
+        .sort(
+          (a, b) =>
+            new Date(a.start.value).getTime() -
+            new Date(b.start.value).getTime(),
         );
 
+      const tasks: Task[] = [];
+
       if (!groups || !Object.keys(groups).length) {
-        processUngroupedTasks(noParentItems, withParentItems, newTasks);
-      } else {
-        processGroupedTasks(noParentItems, withParentItems, newTasks);
+        const parentItems = sortedItems.filter((item) => !item.parentId);
+        parentItems.forEach((parent) => {
+          tasks.push(createTask(parent));
+          sortedItems
+            .filter(
+              (subItem) =>
+                Number(subItem.parentId?.value) === parent.Title.number,
+            )
+            .forEach((subItem) =>
+              tasks.push(createTask(subItem, undefined, String(parent.id))),
+            );
+        });
+        return tasks;
       }
 
-      return newTasks.filter(
-        (task) => task.start instanceof Date && task.end instanceof Date,
-      );
-    };
-
-    const processUngroupedTasks = (
-      noParentItems: TaskItem[],
-      withParentItems: Record<string, TaskItem[]>,
-      newTasks: Task[],
-    ) => {
-      noParentItems.forEach((item) => {
-        newTasks.push(createTask(item));
-        withParentItems[item.Title.number]?.forEach((childItem) => {
-          newTasks.push(createTask(childItem, undefined, String(item.id)));
-        });
-      });
-    };
-
-    const processGroupedTasks = (
-      noParentItems: TaskItem[],
-      withParentItems: Record<string, TaskItem[]>,
-      newTasks: Task[],
-    ) => {
-      Object.values(groups)
-        .filter((group) => group.groupMetadata && group.groupValue)
+      const sortedGroups = Object.values(groups)
+        .filter((group) => group.groupMetadata?.startDate && group.groupValue)
         .sort(
           (a, b) =>
             new Date(a.groupMetadata.startDate).getTime() -
             new Date(b.groupMetadata.startDate).getTime(),
-        )
-        .forEach((group) => {
-          newTasks.push(createProjectTask(group, columnMap));
-          noParentItems
-            .filter((item) => item.group?.groupId === group.groupId)
-            .forEach((item) => {
-              newTasks.push(createTask(item, group.groupId));
-              withParentItems[item.Title.number]?.forEach((childItem) => {
-                newTasks.push(
-                  createTask(childItem, group.groupId, String(item.id)),
-                );
-              });
-            });
-        });
+        );
+
+      sortedGroups.forEach((group) => {
+        tasks.push(createProjectTask(group, columnMap));
+        const groupItems = sortedItems.filter(
+          (item) => item.group?.groupId === group.groupId,
+        );
+        const groupItemIDs = new Set(
+          groupItems.map((item) => Number(item.Title.number)),
+        );
+
+        groupItems
+          .filter(
+            (item) =>
+              !item.parentId || !groupItemIDs.has(Number(item.parentId?.value)),
+          )
+          .forEach((parent) => {
+            tasks.push(createTask(parent, group.groupId));
+            groupItems
+              .filter(
+                (subItem) =>
+                  Number(subItem.parentId?.value) ===
+                  Number(parent.Title.number),
+              )
+              .forEach((subItem) =>
+                tasks.push(
+                  createTask(subItem, group.groupId, String(parent.id)),
+                ),
+              );
+          });
+      });
+
+      return tasks;
     };
 
     setTasks(generateTasks());
@@ -217,6 +218,7 @@ export const Chart: React.FC<ChartProps> = ({ className }) => {
         columnOptions={{
           columns,
         }}
+        holidays={columnMap.holidays}
       />
     </div>
   ) : (

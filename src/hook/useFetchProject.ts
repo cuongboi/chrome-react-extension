@@ -1,5 +1,4 @@
 import { load } from 'cheerio';
-import { endOfToday, startOfToday } from 'date-fns';
 import { useEffect, useState } from 'react';
 
 import { GHRegex, GHRequestHeaders } from '@/lib/contains';
@@ -23,18 +22,31 @@ interface ItemGroupParsed {
 }
 
 // Utility Functions
-const fetchJson = async <T>(
+export const fetchJson = async <T>(
   url: string,
-  options: RequestInit = {},
+  options: Omit<RequestInit, 'body'> & {
+    body?: unknown;
+  } = {},
 ): Promise<T> => {
   const response = await fetch(url, {
     ...options,
-    headers: GHRequestHeaders,
+    headers: {
+      ...GHRequestHeaders,
+      ...options.headers,
+    },
     mode: 'cors',
     credentials: 'include',
+    body:
+      typeof options.body === 'string'
+        ? options.body
+        : JSON.stringify(options.body),
   });
   if (!response.ok) throw new Error(`Fetch failed: ${response.status}`);
-  return response.json();
+  try {
+    return response.json();
+  } catch {
+    return response.text() as unknown as T;
+  }
 };
 
 const parseItemValues = (item: any): Map<string, any> =>
@@ -66,22 +78,11 @@ const parseColumnData = (
       : undefined,
     Labels: itemValues.get('Labels') as ValueLabels[],
     parentId: itemValues.get(String(columnMap['parentId'])),
+    start: itemValues.get(String(columnMap['start'])),
+    end: itemValues.get(String(columnMap['end'])),
     actualStart: itemValues.get(String(columnMap['actualStart'])),
     actualEnd: itemValues.get(String(columnMap['actualEnd'])),
   };
-
-  const dateFields = {
-    start: columnMap.start,
-    end: columnMap.end,
-  };
-
-  for (const [key, field] of Object.entries(dateFields)) {
-    const value = field.find(({ value }) => itemValues.get(String(value)));
-    if (value)
-      columnData[key as keyof typeof columnData] = itemValues.get(
-        String(value.value),
-      );
-  }
 
   return columnData as TaskItem;
 };
@@ -116,30 +117,6 @@ const processItems = (
   return { taskItems, groups };
 };
 
-const updateActualItems = async (
-  items: TaskItem[],
-  updateType: 'actualStart' | 'actualEnd',
-  value: string,
-  columnMap: ColumnMapValue,
-  updateApi: string,
-): Promise<void> => {
-  const updatePromises = items.map((item) =>
-    fetchJson(updateApi, {
-      method: 'PUT',
-      body: JSON.stringify({
-        memexProjectItemId: item.id,
-        memexProjectColumnValues: [
-          { memexProjectColumnId: columnMap[updateType], value },
-        ],
-      }),
-    }),
-  );
-
-  await Promise.all(updatePromises).catch((err) =>
-    console.error(`Update failed: ${err.message}`),
-  );
-};
-
 // Main Hook
 export function useFetchProject({ watch = false }: Config = {}) {
   const [isReady, setIsReady] = useState(false);
@@ -152,8 +129,8 @@ export function useFetchProject({ watch = false }: Config = {}) {
     setUpdateApi,
     updateApi,
   } = useProjectStore();
-  const { setColumns, columns, columnMap: mapWithPathname } = useColumnStore();
-  const columnMap = mapWithPathname[window.location.pathname];
+  const { setColumns, columns, setColumnMap, columnMap, setConfigDescription } =
+    useColumnStore();
 
   const parseAndStoreGroups = (groups: Record<string, any>) =>
     setGroups(
@@ -179,11 +156,24 @@ export function useFetchProject({ watch = false }: Config = {}) {
 
     try {
       const $ = load(document.documentElement.innerHTML);
-      const [columnsDataRaw, itemsRaw, updateApiRaw] = [
+      const [columnsDataRaw, itemsRaw, updateApiRaw, projectConfigRaw] = [
         $('#memex-columns-data').text(),
         $('#memex-paginated-items-data').text(),
         $('#memex-item-update-api-data').text(),
+        $('#memex-data').text(),
       ];
+      const projectConfig = projectConfigRaw.parseJson<{
+        description: string;
+      }>();
+
+      setConfigDescription(projectConfig.description);
+
+      const columnMapRaw =
+        projectConfig.description.match(/<!--([^>]*)-->/is)?.[1] ?? '{}';
+      const columnMap = columnMapRaw.parseJson<ColumnMapValue>();
+      window.holidays = columnMap.holidays;
+
+      setColumnMap(columnMap);
 
       setUpdateApi(JSON.parse(updateApiRaw).url);
       setColumns(
@@ -251,30 +241,6 @@ export function useFetchProject({ watch = false }: Config = {}) {
 
   useEffect(() => {
     if (!items.length || !columnMap || !updateApi) return;
-
-    const updates = [
-      {
-        items: items.filter(
-          (item) =>
-            !item.actualStart && item.Status?.id === columnMap.statusStart,
-        ),
-        type: 'actualStart' as const,
-        value: startOfToday().toISOString(),
-      },
-      {
-        items: items.filter(
-          (item) => !item.actualEnd && item.Status?.id === columnMap.statusEnd,
-        ),
-        type: 'actualEnd' as const,
-        value: endOfToday().toISOString(),
-      },
-    ];
-
-    updates.forEach(({ items, type, value }) => {
-      if (items.length) {
-        updateActualItems(items, type, value, columnMap, updateApi);
-      }
-    });
 
     setBoardItems(items, columnMap);
   }, [items, columnMap, updateApi]);

@@ -64,7 +64,6 @@ const BarOriginal = (props: IProps) => {
       rootStyle={{
         ...barDisplayDefaultProps.rootStyle,
         height: task.height,
-        background: 'var(--bgColor-white)',
       }}
       barStyle={{
         ...barDisplayDefaultProps.barStyle,

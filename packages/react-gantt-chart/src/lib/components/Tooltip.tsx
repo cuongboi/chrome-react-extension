@@ -1,5 +1,11 @@
 // *** NPM ***
-import { differenceInBusinessDays } from 'date-fns';
+import {
+  addDays,
+  differenceInBusinessDays,
+  isSameDay,
+  isWeekend,
+  startOfDay,
+} from 'date-fns';
 import React, { useRef, useEffect, useState } from 'react';
 
 import { BarTask } from '../types/bar-task';
@@ -33,6 +39,12 @@ export type IProps = {
 type TOptionalPropsKeys = Exclude<OptionalKeys<IProps>, undefined>;
 type TOptionalProps = Required<Pick<IProps, TOptionalPropsKeys>>;
 
+declare global {
+  interface Window {
+    holidays: Date[];
+  }
+}
+
 export const defaultProps: TOptionalProps = {
   multiBarRowMode: false,
   // style
@@ -44,6 +56,29 @@ export const defaultProps: TOptionalProps = {
     userSelect: 'none',
   },
 };
+
+function isHoliday(date: Date) {
+  return window.holidays.some((holiday) =>
+    isSameDay(new Date(holiday), new Date(date)),
+  );
+}
+
+export function getBusinessDaysDifference(
+  endDate: Date | string,
+  startDate: Date | string,
+) {
+  let businessDays = 0;
+  let currentDate = startOfDay(startDate);
+
+  while (currentDate < startOfDay(endDate)) {
+    if (!isWeekend(currentDate) && !isHoliday(currentDate)) {
+      businessDays++;
+    }
+    currentDate = addDays(currentDate, 1);
+  }
+
+  return businessDays;
+}
 
 const Tooltip = (props: IProps & typeof defaultProps) => {
   // *** PROPS ***
@@ -176,7 +211,7 @@ export const StandardTooltipContent = (props: ITooltipContentProps) => {
       {task.end.getTime() - task.start.getTime() !== 0 &&
         // Logic: working only with business days, start and end are inclusive
         task.type === 'task' && (
-          <span>{`Working days: ${differenceInBusinessDays(task.end, task.start) + 1} `}</span>
+          <span>{`Working days: ${getBusinessDaysDifference(task.end, task.start) + 1} `}</span>
         )}
 
       {/* PROGRESS */}

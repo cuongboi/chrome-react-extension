@@ -14,7 +14,6 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { useColumnStore } from '@/storage/project';
 import type { TaskItem } from '@/types';
 
 import { getVelocityData } from './utils';
@@ -28,10 +27,7 @@ export function SprintVelocityChart({
   selectedSprint,
   items,
 }: SprintVelocityChartProps) {
-  const { columnMap: mapWithPathname } = useColumnStore();
-  const columnMap = mapWithPathname[window.location.pathname];
-
-  const data = getVelocityData(items, selectedSprint, columnMap.statusEnd);
+  const data = getVelocityData(items, selectedSprint);
 
   return (
     <Card>

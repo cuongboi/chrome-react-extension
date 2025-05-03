@@ -15,7 +15,7 @@ const FILE_EXTENSIONS = {
   css: '.css',
 } as const;
 
-const entrypoints = ['index.tsx', 'background.ts'];
+const entrypoints = ['index.tsx', 'background.ts', 'popup/index.tsx'];
 
 const resolveEntryPoints = (entrypoints: string[]): string[] =>
   entrypoints.map((entrypoint) => `./src/${entrypoint}`);
@@ -61,7 +61,9 @@ const buildProject = async (): Promise<void> => {
       const folderName = filename.replace(FILE_EXTENSIONS.html, '');
       const destDir = `${OUT_DIR}/${folderName}`;
 
-      copyPromises.push($`cp ${srcPath} ${destDir}/index.html`.quiet());
+      copyPromises.push(
+        $`mkdir -p ${destDir} && cp ${srcPath} ${destDir}/index.html`.quiet(),
+      );
     } else {
       copyPromises.push($`cp ${srcPath} ${OUT_DIR}`.quiet());
     }

@@ -40,8 +40,12 @@ export default function Dashboard() {
           items={boarditems}
         />
         <TeamWorkloadChart selectedSprint={currentSprint} items={boarditems} />
+        <TaskList
+          items={boarditems}
+          selectedSprint={currentSprint}
+          className="col-span-4"
+        />
       </div>
-      <TaskList items={boarditems} selectedSprint={currentSprint} />
     </DashboardShell>
   );
 }

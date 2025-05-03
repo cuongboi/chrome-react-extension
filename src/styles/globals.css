@@ -119,6 +119,21 @@
   * {
     @apply border-border outline-ring/50;
   }
+}
+
+@layer utilities {
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .scrollbar {
+    -ms-overflow-style: auto; /* IE and Edge */
+    overscroll-behavior: contain; /* Prevent scroll chaining */
+  }
 
   .scrollbar::-webkit-scrollbar {
     @apply block h-1.5 w-1.5; /* Consistent size for horizontal/vertical scrollbars */

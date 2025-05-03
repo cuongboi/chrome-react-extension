@@ -168,3 +168,39 @@ export function deepEquals(a: any, b: any): boolean {
 
   return true;
 }
+
+export const getUrlPath = () => {
+  const url = window.location.href;
+  const matcher = /(orgs|users)\/(\w+)\/projects\/(\d+)/;
+
+  const [, type, name, id] = url.match(matcher) || [];
+
+  return {
+    type,
+    name,
+    id,
+    key: `${type}:${name}:${id}`,
+  };
+};
+
+declare global {
+  interface Number {
+    pluralize: (one: string, other: string) => string;
+  }
+
+  interface String {
+    parseJson: <T = unknown>() => T;
+  }
+}
+
+Number.prototype.pluralize = function (one: string, other: string) {
+  return `${this} ${this === 1 ? one : other}`;
+};
+
+String.prototype.parseJson = function <T = unknown>(): T {
+  try {
+    return JSON.parse(String(this));
+  } catch {
+    return {} as T;
+  }
+};

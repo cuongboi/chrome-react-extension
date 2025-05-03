@@ -1,6 +1,5 @@
 import {
   parseISO,
-  differenceInBusinessDays,
   differenceInCalendarDays,
   addDays,
   isWithinInterval,
@@ -8,9 +7,11 @@ import {
   endOfDay,
   format,
   startOfDay,
+  isSameDay,
+  isWeekend,
 } from 'date-fns';
 
-import type { Group, TaskItem } from '@/types';
+import type { Group, TaskItem, ValueLabels } from '@/types';
 
 // Get tasks for a specific sprint
 export const getTasksForSprint = (taskData: TaskItem[], sprintName: string) => {
@@ -54,13 +55,15 @@ export const getSprintProgress = (sprintData: Group[], sprintName: string) => {
 // Get team workload data
 export const getTeamWorkload = (taskData: TaskItem[], sprintName: string) => {
   const tasks = getTasksForSprint(taskData, sprintName);
+  const parentIds = tasks.map((task) => task.Title.number);
   const teamWorkload: Record<string, { tasks: number; storyPoints: number }> =
     {};
 
   tasks.forEach((task) => {
     if (task.Assignees && task.Assignees.length > 0) {
-      const storyPoints =
-        differenceInBusinessDays(task.end.value, task.start.value) + 1;
+      const storyPoints = parentIds.includes(Number(task.parentId?.value))
+        ? 0
+        : getBusinessDaysDifference(task.end.value, task.start.value) + 1;
 
       task.Assignees.forEach((assignee) => {
         const name = assignee.login;
@@ -89,7 +92,20 @@ export const getBurndownData = (taskData: TaskItem[], sprintName: string) => {
 
   if (!sprint) return [];
 
-  const totalDays = sprint.duration;
+  taskData = taskData.filter((task) => task.group?.groupValue === sprintName);
+
+  const lastIdealDate = taskData.sort(
+    (a, b) =>
+      endOfDay(b.end?.value).getTime() - endOfDay(a.end?.value).getTime(),
+  )[0];
+
+  const actualSprintDuration =
+    differenceInCalendarDays(lastIdealDate.end.value, sprint.startDate) + 1;
+
+  const totalDays =
+    actualSprintDuration > sprint.duration
+      ? actualSprintDuration
+      : sprint.duration;
   const startDate = parseISO(sprint.startDate);
   const sprintTasks = getTasksForSprint(taskData, sprintName);
   const totalPoints = calcStoryPoints(sprintTasks);
@@ -98,32 +114,24 @@ export const getBurndownData = (taskData: TaskItem[], sprintName: string) => {
   let remaining = totalPoints;
   let ideal = totalPoints;
 
-  for (let i = 0; i <= totalDays; i++) {
-    const day =
-      i === 0
-        ? ' '
-        : format(startOfDay(addDays(startDate, i - 1)), 'yyyy-MM-dd');
+  for (let i = 0; i < totalDays; i++) {
+    const date = endOfDay(addDays(startDate, i));
+    const day = i === 0 ? ' ' : format(date, 'yyyy-MM-dd');
 
     if (i === 0) {
       data.push({ day, remaining: remaining, ideal: ideal });
     } else {
-      const date = endOfDay(addDays(startDate, i));
       remaining = totalPoints - getActualPointsByDay(sprintTasks, date);
       ideal = totalPoints - getIdealPointsByDay(sprintTasks, date);
 
-      data.push({ day, remaining, ideal });
+      data.push({ day, i, remaining, ideal });
     }
   }
 
   return data;
 };
 
-// Generate velocity chart data
-export const getVelocityData = (
-  taskData: TaskItem[],
-  sprintName: string,
-  completeStatus: string,
-) => {
+export const getVelocityData = (taskData: TaskItem[], sprintName: string) => {
   const sprints = [...new Set(taskData.map((task) => task.group?.groupValue))];
   const currentSprintIndex = sprints.indexOf(sprintName);
 
@@ -139,9 +147,8 @@ export const getVelocityData = (
     const sprintTasks = getTasksForSprint(taskData, sprint);
     const totalTasks = sprintTasks.length;
 
-    // Calculate completed tasks
     const completedTasks = sprintTasks.filter(
-      (task) => task.Status.id === completeStatus,
+      (task) => !!task.actualEnd,
     ).length;
 
     data.push({
@@ -158,21 +165,11 @@ export const getVelocityData = (
 export const getSprintStoryPoints = (
   taskData: TaskItem[],
   sprintName: string,
-  completeStatus: string,
 ) => {
   const tasks = getTasksForSprint(taskData, sprintName);
-  let totalPoints = 0;
-  let completedPoints = 0;
-
-  tasks.forEach((task) => {
-    const days = differenceInBusinessDays(task.end.value, task.start.value) + 1; // Include both start and end dates
-    totalPoints += days;
-
-    // Check if task is completed
-    if (task.Status.id === completeStatus) {
-      completedPoints += days;
-    }
-  });
+  const totalPoints = calcStoryPoints(tasks);
+  const completedTask = getSprintTaskComplete(tasks);
+  const completedPoints = calcStoryPoints(completedTask);
 
   return { totalPoints, completedPoints };
 };
@@ -260,14 +257,12 @@ export const pluckTasks = (
 
 export const getSprintTaskComplete = (
   items: TaskItem[],
-  completeStatus: string,
   date: Date = new Date(),
 ) =>
   items.filter((item) => {
-    const statusId = item.Status?.id;
     try {
       return (
-        statusId === completeStatus &&
+        item.actualEnd &&
         isBefore(parseISO(item.actualEnd.value), endOfDay(date))
       );
     } catch {
@@ -275,45 +270,142 @@ export const getSprintTaskComplete = (
     }
   });
 
-export const calcStoryPoints = (items: TaskItem[]) => {
+export const calcStoryPoints = (
+  items: TaskItem[],
+  filter?: (item: TaskItem, index?: number) => boolean,
+) => {
   let totalPoints = 0;
+  const parentIds = items.map((item) => item.Title.number);
 
-  items.forEach((item) => {
-    const days =
-      differenceInBusinessDays(
-        parseISO(item.end.value),
-        parseISO(item.start.value),
-      ) + 1;
-    totalPoints += days; // Include both start and end dates
-  });
+  items
+    .filter(
+      (item, index) =>
+        item.end &&
+        item.start &&
+        !parentIds.includes(Number(item.parentId?.value)) &&
+        (filter ? filter(item, index) : true),
+    )
+    .forEach((item) => {
+      const days =
+        getBusinessDaysDifference(
+          parseISO(item.end.value),
+          parseISO(item.start.value),
+        ) + 1;
+      totalPoints += days;
+    });
 
   return totalPoints;
 };
+
+function isHoliday(date: Date) {
+  return window.holidays.some((holiday) =>
+    isSameDay(new Date(holiday), new Date(date)),
+  );
+}
+
+export function getBusinessDaysDifference(
+  endDate: Date | string,
+  startDate: Date | string,
+) {
+  let businessDays = 0;
+  let currentDate = startOfDay(startDate);
+
+  while (currentDate < startOfDay(endDate)) {
+    if (!isWeekend(currentDate) && !isHoliday(currentDate)) {
+      businessDays++;
+    }
+    currentDate = addDays(currentDate, 1);
+  }
+
+  return businessDays;
+}
 
 export const getIdealPointsByDay = (
   items: TaskItem[],
   date: Date = new Date(),
 ) => {
-  const itemsByDate = items.filter(
-    (item) => item.end?.value && isBefore(item.end.value, endOfDay(date)),
+  return calcStoryPoints(
+    items,
+    (item) => item.end && isBefore(parseISO(item.end.value), endOfDay(date)),
   );
-
-  const totalPoints = calcStoryPoints(itemsByDate);
-
-  return totalPoints;
 };
 
 export const getActualPointsByDay = (
   items: TaskItem[],
   date: Date = new Date(),
 ): number => {
-  const itemsByDate = items.filter(
+  return calcStoryPoints(
+    items,
     (item) =>
-      item.actualEnd?.value &&
+      item.actualEnd &&
       isBefore(parseISO(item.actualEnd.value), endOfDay(date)),
   );
+};
 
-  const totalPoints = calcStoryPoints(itemsByDate);
+export const isSubTask = (task: TaskItem, tasks: TaskItem[]) =>
+  tasks.some((t) => Number(t.Title.number) === Number(task.parentId?.value));
 
-  return totalPoints;
+export const getSprint = (
+  group: Record<string, Group>,
+  currentSprint: string,
+): Group => {
+  return (
+    Object.values(group).find(
+      (sprint) => sprint.groupValue === currentSprint,
+    ) ?? ({} as Group)
+  );
+};
+
+export const getLabelItems = (tasks: TaskItem[]) => {
+  const labelTasks: Map<
+    string,
+    {
+      label: ValueLabels;
+      tasks: TaskItem[];
+    }
+  > = new Map();
+
+  tasks.forEach((task) => {
+    task.Labels?.forEach((labels) => {
+      if (!labelTasks.has(labels.name)) {
+        labelTasks.set(labels.name, {
+          label: labels,
+          tasks: [task],
+        });
+      } else {
+        const existingLabel = labelTasks.get(labels.name);
+        if (existingLabel) {
+          existingLabel.tasks.push(task);
+        }
+
+        labelTasks.set(labels.name, existingLabel!);
+      }
+    });
+  });
+
+  return labelTasks;
+};
+
+export const sprintLabelTasks = (
+  groups: Record<string, Group>,
+  tasks: TaskItem[],
+  currentSprint: string,
+) => {
+  const groupValues = Object.values(groups);
+
+  const currentSprintIndex = groupValues.findIndex(
+    (sprint) => sprint.groupValue === currentSprint,
+  );
+  const sprints = groupValues.slice(0, currentSprintIndex + 1);
+
+  return sprints.map((sprint) => {
+    const sprintTasks = tasks.filter(
+      (task) => task.group?.groupValue === sprint.groupValue,
+    );
+
+    return {
+      sprint: sprint.groupValue,
+      labels: getLabelItems(sprintTasks),
+    };
+  });
 };

@@ -31,7 +31,7 @@ export const worker = {
     if (path === '/login') {
       const clientId = env.GITHUB_CLIENT_ID; // Secret injected by Wrangler
       const redirectUri = `${url.origin}/callback`;
-      const scope = 'repo'; // Request manage repo scope
+      const scope = 'repo read:org'; // Request manage repo scope
       const githubAuthUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scope)}`;
       return Response.redirect(githubAuthUrl, 302);
     }

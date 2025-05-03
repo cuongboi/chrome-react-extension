@@ -99,10 +99,10 @@ export interface PageInfo {
 }
 
 export interface Assignees {
-  nodes: Node[];
+  nodes: LoginNode[];
 }
 
-export interface Node {
+export interface LoginNode {
   id: string;
   login: string;
   name: string;
@@ -192,6 +192,8 @@ export interface IssueComment {
   __isTimelineEvent?: string;
   actor?: Actor;
   assignee?: Assignee;
+  status?: string;
+  previousStatus?: string;
   data?: {
     content: string;
     metadata: Record<string, string>;
@@ -335,13 +337,11 @@ export interface ValueString {
 }
 
 export interface ValueLabels {
-  value: {
-    color: string;
-    id: number;
-    name: string;
-    nameHtml: string;
-    url: string;
-  }[];
+  color: string;
+  id: number;
+  name: string;
+  nameHtml: string;
+  url: string;
 }
 
 export interface ValueNumber {
@@ -368,3 +368,31 @@ export interface TotalCount {
   value: number;
   isApproximate: boolean;
 }
+
+export interface GroupItem {
+  groupId: string;
+  nodes: Node[];
+  pageInfo: PageInfo;
+}
+
+export interface ProjectItemNode {
+  contentId: number;
+  contentType: string;
+  contentRepositoryId?: number;
+  id: number;
+  priority: any;
+  virtualPriority: string;
+  updatedAt: string;
+  createdAt: string;
+  issueCreatedAt?: string;
+  issueClosedAt?: string;
+  state?: string;
+  [key: string]: any;
+}
+
+export type IssueUrl = {
+  url: string;
+  owner: string;
+  repo: string;
+  issue: string;
+};

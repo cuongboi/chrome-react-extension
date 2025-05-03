@@ -1,11 +1,13 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Loader2 } from 'lucide-react';
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import * as z from 'zod';
 
+import { MultiDateSelector } from '@/components/muti-date-selector';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -23,7 +25,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { getStatusColor } from '@/lib/utils';
+import { fetchJson } from '@/hook/useFetchProject';
+import { getStatusColor, getUrlPath } from '@/lib/utils';
 import { useColumnStore } from '@/storage/project';
 
 const optionColumnSchema = z.object({
@@ -32,20 +35,19 @@ const optionColumnSchema = z.object({
 });
 
 const formSchema = z.object({
-  start: optionColumnSchema.array(),
-  end: optionColumnSchema.array(),
+  start: z.string(),
+  end: z.string(),
   actualStart: z.string(),
   actualEnd: z.string(),
-  statusStart: z.string(),
-  statusEnd: z.string(),
   parentId: z.string(),
   statuses: optionColumnSchema.array(),
+  holidays: z.date().array(),
 });
 
 export default function ColumnMap() {
-  const { columns, setColumnMap, columnMap: columnMapStore } = useColumnStore();
-
-  const [saved, setSaved] = React.useState(false);
+  const { columns, columnMap, configDescription } = useColumnStore();
+  const { type, name, id } = getUrlPath();
+  const [saving, setSaving] = React.useState(false);
   const columnOptions = React.useMemo(() => {
     return {
       dateList: Object.entries(columns)
@@ -99,35 +101,51 @@ export default function ColumnMap() {
     };
   }, [columns]);
 
-  const columnMap = React.useMemo(() => {
-    const map = columnMapStore[window.location.pathname] ?? {};
-    return {
-      start: map?.start ?? [],
-      end: map?.end ?? [],
-      parentId: map?.parentId,
-      actualStart: map?.actualStart,
-      actualEnd: map?.actualEnd,
-      statusStart: map?.statusStart,
-      statusEnd: map?.statusEnd,
-      statuses: map?.statuses ?? [],
-    };
-  }, [columns, columnMapStore]);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: columnMap,
+    defaultValues: {
+      start: columnMap?.start || '',
+      end: columnMap?.end || '',
+      actualStart: columnMap?.actualStart || '',
+      actualEnd: columnMap?.actualEnd || '',
+      parentId: columnMap?.parentId || '',
+      statuses: columnMap?.statuses || [],
+      holidays: (columnMap?.holidays ?? []).map((date) => new Date(date)),
+    },
   });
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      setColumnMap(window.location.pathname, values);
-      setSaved(true);
-      window.location.reload();
-      toast.success('Column map saved successfully');
-    } catch (error) {
-      console.error('Form submission error', error);
-      toast.error('Failed to submit the form. Please try again.');
-    }
+    const newColumnMap = {
+      ...columnMap,
+      start: values.start,
+      end: values.end,
+      actualStart: values.actualStart,
+      actualEnd: values.actualEnd,
+      parentId: values.parentId,
+      statuses: values.statuses,
+      holidays: values.holidays.map((date) => date.toUTCString()),
+    };
+
+    const description = configDescription.replace(
+      /<!--([^>]*)-->/is,
+      `<!--${JSON.stringify(newColumnMap, null, 2)}-->`,
+    );
+
+    fetchJson(`/${type}/${name}/projects/beta/${id}`, {
+      method: 'PUT',
+      body: { description },
+    })
+      .then(() => {
+        toast.success('Column map saved successfully');
+        setTimeout(() => window.location.reload(), 1000);
+      })
+      .catch((error) => {
+        console.error('Error saving column map', error);
+        toast.error('Failed to save column map');
+      })
+      .finally(() => {
+        setSaving(true);
+      });
   }
 
   return (
@@ -136,68 +154,63 @@ export default function ColumnMap() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-4 w-full p-4"
         onChange={() => {
-          setSaved(false);
+          setSaving(false);
         }}
       >
-        <FormField
-          control={form.control}
-          name="start"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Start Column</FormLabel>
+        <div className="w-full flex items-center gap-4">
+          <FormField
+            control={form.control}
+            name="start"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>Start Column</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={String(field.value)}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select as parent column" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>{columnOptions.date}</SelectContent>
+                </Select>
 
-              <MultipleSelector
-                commandProps={{
-                  label: 'Select as Time Start column',
-                }}
-                options={columnOptions.dateList}
-                placeholder="Select as Time Start column"
-                hideClearAllButton
-                hidePlaceholderWhenSelected
-                emptyIndicator={
-                  <p className="text-center text-sm">No results found</p>
-                }
-                value={field.value}
-                onChange={field.onChange}
-              />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="end"
+            render={({ field }) => (
+              <FormItem className="w-full">
+                <FormLabel>End Column</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={String(field.value)}
+                >
+                  <FormControl>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select as parent column" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>{columnOptions.date}</SelectContent>
+                </Select>
 
-        <FormField
-          control={form.control}
-          name="end"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>End Column</FormLabel>
-              <MultipleSelector
-                commandProps={{
-                  label: 'Select as Time End column',
-                }}
-                options={columnOptions.dateList}
-                placeholder="Select as Time End column"
-                hideClearAllButton
-                hidePlaceholderWhenSelected
-                emptyIndicator={
-                  <p className="text-center text-sm">No results found</p>
-                }
-                value={field.value}
-                onChange={field.onChange}
-              />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="grid grid-cols-2 gap-4 w-full">
+        <div className="w-full flex items-center gap-4">
           <FormField
             control={form.control}
             name="actualStart"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Actual Start Column</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -217,33 +230,9 @@ export default function ColumnMap() {
 
           <FormField
             control={form.control}
-            name="statusStart"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status for Actual Start</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={String(field.value)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select as parent column" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>{columnOptions.statuses}</SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 w-full">
-          <FormField
-            control={form.control}
             name="actualEnd"
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="w-full">
                 <FormLabel>Actual End Column</FormLabel>
                 <Select
                   onValueChange={field.onChange}
@@ -255,29 +244,6 @@ export default function ColumnMap() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>{columnOptions.date}</SelectContent>
-                </Select>
-
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="statusEnd"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status for Actual End</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={String(field.value)}
-                >
-                  <FormControl>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select as parent column" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>{columnOptions.statuses}</SelectContent>
                 </Select>
 
                 <FormMessage />
@@ -350,8 +316,21 @@ export default function ColumnMap() {
           )}
         />
 
-        <Button type="submit" disabled={saved}>
-          {saved ? 'Saved' : 'Submit'}
+        <FormField
+          control={form.control}
+          name="holidays"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Holidays</FormLabel>
+              <MultiDateSelector id="controlled-holidays" {...field} />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <Button type="submit" disabled={saving}>
+          {saving && <Loader2 className="mr-2 animate-spin" />}
+          {saving ? 'Saving' : 'Submit'}
         </Button>
       </form>
     </Form>

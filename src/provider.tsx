@@ -1,24 +1,28 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { useShallow } from 'zustand/shallow';
 
 import { useFetchProject } from './hook/useFetchProject';
+import { ExportButton } from './project/export';
 import { ProjectManager } from './project/project';
 import { useColumnStore } from './storage/project';
 
-type AppContextType = unknown;
+type AppContextType = {};
 
 export const AppContext = React.createContext({
-  // api: {} as Octokit,
+  // octokit: {} as Octokit,
 } as AppContextType);
 
-export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
-  children,
-}) => {
+export const AppProvider: React.FC = React.memo(() => {
   const { isReady } = useFetchProject({ watch: true });
-  const { columnMap } = useColumnStore();
+  const columnMap = useColumnStore(useShallow((state) => state.columnMap));
 
   const buttons = React.useMemo<HTMLDivElement[]>(
-    () => [document.createElement('div'), document.createElement('div')],
+    () => [
+      document.createElement('div'),
+      document.createElement('div'),
+      document.createElement('div'),
+    ],
     [],
   );
   const [siblingClass, setSiblingClass] = React.useState<string>('');
@@ -44,7 +48,7 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
         <ProjectManager
           siblingClass={siblingClass}
           type="chart"
-          isReady={!!columnMap[window.location.pathname]}
+          isReady={!!columnMap}
         />,
         buttons[0],
       )}
@@ -56,10 +60,13 @@ export const AppProvider: React.FC<{ children?: React.ReactNode }> = ({
         />,
         buttons[1],
       )}
-      {children}
+      {createPortal(
+        <ExportButton siblingClass={siblingClass} isReady={!!columnMap} />,
+        buttons[2],
+      )}
     </AppContext.Provider>
   );
-};
+});
 
 export const useAppContext = () => {
   const context = React.useContext(AppContext);

@@ -10,9 +10,13 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250327.0",
     "@types/bun": "latest",
+    "@types/got": "^9.6.12",
     "wrangler": "^4.6.0"
   },
   "peerDependencies": {
     "typescript": "^5"
+  },
+  "dependencies": {
+    "got": "^14.4.7"
   }
 }

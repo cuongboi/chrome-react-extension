@@ -33,9 +33,7 @@ export function TeamWorkloadChart({
     <Card>
       <CardHeader>
         <CardTitle>Team Workload</CardTitle>
-        <CardDescription>
-          Tasks and story points assigned per team member
-        </CardDescription>
+        <CardDescription>Tasks and story points assigned</CardDescription>
       </CardHeader>
       <CardContent className="h-full">
         <div className="h-full w-full">

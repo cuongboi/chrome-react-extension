@@ -1,4 +1,5 @@
 // *** NPM ***
+import { parseISO, startOfDay } from 'date-fns';
 import React, { ReactChild } from 'react';
 
 import { addToDate } from '../../helpers/date-helper';
@@ -11,6 +12,7 @@ import { isWeekend, isWorkingDay } from '../Calendar/Calendar';
 export type IProps = {
   tasks: Task[];
   dates: Date[];
+  holidays: Date[];
   svgWidth: number;
   rowHeight: number;
   columnWidth: number;
@@ -50,6 +52,7 @@ const Grid = (props: IProps & typeof defaultProps) => {
     gridRowStyle,
     gridRowLineStyle,
     gridTickStyle,
+    holidays = [],
   } = props;
 
   // *** CONDITIONALS ***
@@ -104,18 +107,35 @@ const Grid = (props: IProps & typeof defaultProps) => {
     const date = dates[i];
 
     // Working day and not is monday
-    if (isWorkingDay(date) && date.getDay() !== 1) {
-      ticks.push(
-        <line
-          key={date.getTime()}
-          style={gridTickStyle}
-          x1={tickX}
-          y1={0}
-          x2={tickX}
-          y2={y}
-        />,
-      );
-    } else if (isWeekend(date)) {
+    if (
+      !holidays.some(
+        (holiday) =>
+          startOfDay(holiday).getTime() === startOfDay(date).getTime(),
+      )
+    ) {
+      if (isWorkingDay(date) && date.getDay() !== 1) {
+        ticks.push(
+          <line
+            key={date.getTime()}
+            style={gridTickStyle}
+            x1={tickX}
+            y1={0}
+            x2={tickX}
+            y2={y}
+          />,
+        );
+      } else if (isWeekend(date)) {
+        ticks.push(
+          <rect
+            x={tickX}
+            y={0}
+            width={columnWidth}
+            height={y}
+            fill="var(--muted)"
+          />,
+        );
+      }
+    } else {
       ticks.push(
         <rect
           x={tickX}
