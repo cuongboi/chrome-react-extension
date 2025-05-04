@@ -13,8 +13,8 @@ export const AppContext = React.createContext({
   // octokit: {} as Octokit,
 } as AppContextType);
 
-export const AppProvider: React.FC = React.memo(() => {
-  const { isReady } = useFetchProject({ watch: true });
+export const AppProvider = React.memo(() => {
+  useFetchProject({ watch: true });
   const columnMap = useColumnStore(useShallow((state) => state.columnMap));
 
   const buttons = React.useMemo<HTMLDivElement[]>(
@@ -53,11 +53,7 @@ export const AppProvider: React.FC = React.memo(() => {
         buttons[0],
       )}
       {createPortal(
-        <ProjectManager
-          siblingClass={siblingClass}
-          type="config"
-          isReady={isReady}
-        />,
+        <ProjectManager siblingClass={siblingClass} type="config" />,
         buttons[1],
       )}
       {createPortal(

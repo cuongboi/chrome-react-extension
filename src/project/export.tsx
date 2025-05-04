@@ -1,10 +1,10 @@
-import { load } from 'cheerio';
 import { differenceInHours, format, parseISO } from 'date-fns';
 import { Loader2 } from 'lucide-react';
 import React, { useCallback, useState } from 'react';
 import { ListBox, ListBoxItem } from 'react-aria-components';
 import * as XLSX from 'xlsx';
 
+import { getBusinessDaysDifference } from '@/components/board/utils';
 import CsvIcon from '@/components/icons/csv';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -20,26 +20,6 @@ import { fetchJson } from '@/hook/useFetchProject';
 import { useColumnStore, useProjectStore } from '@/storage/project';
 import type { FrontTimelineItems, IssueUrl, ProjectItemNode } from '@/types';
 
-interface IssueData {
-  title: string;
-  number: number;
-  frontTimelineItems: FrontTimelineItems;
-}
-
-interface Payload {
-  payload: {
-    preloadedQueries: {
-      result: {
-        data: {
-          repository: {
-            issue: IssueData;
-          };
-        };
-      };
-    }[];
-  };
-}
-
 interface StatusResult {
   [key: string]: string;
 }
@@ -48,18 +28,26 @@ const fetchIssueData = async (
   issue: IssueUrl,
 ): Promise<Record<string, string>> => {
   try {
-    const response = await fetch(issue.url, { credentials: 'include' });
-    if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+    const url = new URL('https://github.com/_graphql');
+    url.searchParams.set(
+      'body',
+      JSON.stringify({
+        query: 'f8994f3e48f3756cb77fa67b56c2eec4',
+        variables: { count: 250, cursor: null, id: issue.id },
+      }),
+    );
 
-    const $ = load(await response.text());
-    const data = $('script[data-target="react-app.embeddedData"]')
-      .text()
-      .parseJson<Payload>();
+    const {
+      data: { node },
+    } = await fetchJson<{
+      data: {
+        node: {
+          backTimelineItems: FrontTimelineItems;
+        };
+      };
+    }>(url);
 
-    const issueData =
-      data.payload.preloadedQueries[0].result.data.repository.issue;
-
-    const statuses = issueData.frontTimelineItems.edges
+    const statuses = node.backTimelineItems.edges
       .map((edge) => edge.node)
       .filter((node) => node.status)
       .sort(
@@ -71,12 +59,17 @@ const fetchIssueData = async (
       let result = format(parseISO(status.createdAt), 'yyyy-MM-dd HH:mm');
 
       if (statuses[index + 1]) {
+        const days = getBusinessDaysDifference(
+          statuses[index + 1].createdAt,
+          status.createdAt,
+        );
+
         const hours = differenceInHours(
           new Date(statuses[index + 1].createdAt),
           new Date(status.createdAt),
         );
-        result +=
-          `: ${hours > 24 ? Math.floor(hours / 24) + 'd' : ''} ${hours % 24}h`.trim();
+
+        result += `: ${days > 0 ? days + 'd ' : ''}${hours % 24}h`.trim();
       }
 
       acc[status.status!] = `${acc[status.status!] || ''}\n${result}`.trim();
@@ -84,13 +77,12 @@ const fetchIssueData = async (
     }, {});
 
     return {
-      Title: issueData.title,
       Url: issue.url,
       ...statusResult,
     };
   } catch (error) {
-    console.error(`Error fetching issue ${issue.url}:`, error);
-    return { Title: 'Error', Url: issue.url };
+    console.log(`Error fetching issue ${issue.url}:`, error);
+    return { Url: issue.url };
   }
 };
 
@@ -105,7 +97,13 @@ const extractIssues = (nodes: ProjectItemNode[]): IssueUrl[] => {
         console.error('Invalid issue URL:', url);
         return null;
       }
-      return { url, owner: match[1], repo: match[2], issue: match[3] };
+      return {
+        url,
+        owner: match[1],
+        repo: match[2],
+        issue: match[3],
+        id: node.content.globalRelayId,
+      };
     })
     .filter((issue): issue is IssueUrl => issue !== null);
 };
@@ -133,20 +131,31 @@ export const ExportButton: React.FC<{
       if (!url) throw new Error('No export URL found');
 
       const requestUrl = new URL(url, window.location.origin);
-      requestUrl.searchParams.set(
-        'groupedBy[columnId]',
-        Object.values(columns).find((col) => (col.type = 'dataType'))?.id,
-      );
-      const { groupedItems } = await fetchJson<{
+
+      if (Object.values(groups).length > 0) {
+        requestUrl.searchParams.set(
+          'groupedBy[columnId]',
+          Object.values(columns).find((col) => (col.type = 'dataType'))?.id,
+        );
+      }
+
+      let nodes: ProjectItemNode[] = [];
+
+      const response = await fetchJson<{
+        nodes?: ProjectItemNode[];
         groupedItems: {
           groupId: string;
           nodes: ProjectItemNode[];
         }[];
       }>(requestUrl.toString());
 
-      const nodes = groupedItems
-        .filter((group) => selectedGroups.includes(group.groupId))
-        .flatMap((group) => group.nodes);
+      if (response.groupedItems) {
+        nodes = response.groupedItems
+          .filter((group) => selectedGroups.includes(group.groupId))
+          .flatMap((group) => group.nodes);
+      } else if (response.nodes) {
+        nodes = response.nodes;
+      }
 
       const issues = extractIssues(nodes);
 
@@ -154,9 +163,8 @@ export const ExportButton: React.FC<{
 
       const worksheet = XLSX.utils.json_to_sheet(data, {
         header: [
-          'Title',
           'Url',
-          ...columns.Status.settings.options.map(
+          ...(columns.Status?.settings?.options ?? []).map(
             (option: { name: string }) => option.name,
           ),
         ],
@@ -181,7 +189,7 @@ export const ExportButton: React.FC<{
     } finally {
       setIsExporting(false);
     }
-  }, [columns, selectedGroups]);
+  }, [columns, selectedGroups, window.location.href]);
 
   return (
     <Sheet>
@@ -211,40 +219,46 @@ export const ExportButton: React.FC<{
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col p-4 gap-4 w-full">
-          <div className="space-y-2">
-            <Label>Select Sprints</Label>
-            <ListBox
-              className="bg-background max-h-100 scrollbar min-h-20 space-y-1 overflow-auto border-input rounded-md border p-1 text-sm shadow-xs transition-[color,box-shadow]"
-              aria-label="Select Sprints"
-              selectionMode="multiple"
-              onSelectionChange={(selected) => {
-                if (selected === 'all') {
-                  setSelectedGroups(Object.keys(groups));
-                }
+          {Object.values(groups).length > 0 && (
+            <div className="space-y-2">
+              <Label>Select Sprints</Label>
+              <ListBox
+                className="bg-background max-h-100 scrollbar min-h-20 space-y-1 overflow-auto border-input rounded-md border p-1 text-sm shadow-xs transition-[color,box-shadow]"
+                aria-label="Select Sprints"
+                selectionMode="multiple"
+                onSelectionChange={(selected) => {
+                  if (selected === 'all') {
+                    setSelectedGroups(Object.keys(groups));
+                  }
 
-                if (selected instanceof Set) {
-                  setSelectedGroups(
-                    // @ts-expect-error react-aria-components
-                    Array.from(selected.entries()).map(([key]) => key),
-                  );
-                }
-              }}
-            >
-              {Object.values(groups).map((group) => (
-                <ListBoxItem
-                  key={group.groupId}
-                  id={group.groupId}
-                  className="data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-focus-visible:border-ring data-focus-visible:ring-ring/50 relative rounded px-2 py-1.5 outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-focus-visible:ring-[3px]"
-                >
-                  {group.groupValue}
-                </ListBoxItem>
-              ))}
-            </ListBox>
-          </div>
+                  if (selected instanceof Set) {
+                    setSelectedGroups(
+                      // @ts-expect-error react-aria-components
+                      Array.from(selected.entries()).map(([key]) => key),
+                    );
+                  }
+                }}
+              >
+                {Object.values(groups).map((group) => (
+                  <ListBoxItem
+                    key={group.groupId}
+                    id={group.groupId}
+                    className="data-[selected=true]:bg-accent data-[selected=true]:text-accent-foreground data-focus-visible:border-ring data-focus-visible:ring-ring/50 relative rounded px-2 py-1.5 outline-none data-disabled:cursor-not-allowed data-disabled:opacity-50 data-focus-visible:ring-[3px]"
+                  >
+                    {group.groupValue}
+                  </ListBoxItem>
+                ))}
+              </ListBox>
+            </div>
+          )}
 
           <Button
             onClick={handleExport}
-            disabled={isExporting || !isReady || !selectedGroups.length}
+            disabled={
+              isExporting ||
+              !isReady ||
+              (Object.values(groups).length > 0 && !selectedGroups.length)
+            }
           >
             {isExporting && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" size={16} />

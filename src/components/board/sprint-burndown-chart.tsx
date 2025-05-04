@@ -107,6 +107,12 @@ export function SprintBurndownChart({
                 stroke="var(--borderColor-accent-emphasis)"
               />
               <ReferenceLine
+                x={format(new Date(), 'yyyy-MM-dd')}
+                stroke="var(--fgColor-muted)"
+                strokeDasharray="3 8"
+                strokeWidth={1}
+              />
+              <ReferenceLine
                 x={format(
                   addDays(
                     currentSprint.groupMetadata.startDate,

@@ -1,5 +1,4 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 
 import type { Group, StatusValue, TaskItem } from '../types';
 
@@ -19,40 +18,33 @@ export const useProjectStore = create<{
   setBoardItems: (items: TaskItem[], columnMap: ColumnMapValue) => void;
   config: ProjectConfig;
   setConfig: (config: ProjectConfig) => void;
-}>()(
-  persist(
-    (set) => ({
-      items: [],
-      setItems: (items: TaskItem[]) => {
-        set({ items });
-      },
-      groups: {},
-      setGroups: (groups: { [key: string]: Group }) => {
-        set({ groups });
-      },
-      updateApi: '',
-      setUpdateApi: (updateApi: string) => {
-        set({ updateApi });
-      },
-      boarditems: [],
-      setBoardItems: (items, columnMap) => {
-        const allowStatuses = columnMap.statuses.map((item) => item.value);
-        const boarditems = items.filter((item) => {
-          return allowStatuses.includes(item.Status.id);
-        });
+}>()((set) => ({
+  items: [],
+  setItems: (items: TaskItem[]) => {
+    set({ items });
+  },
+  groups: {},
+  setGroups: (groups: { [key: string]: Group }) => {
+    set({ groups });
+  },
+  updateApi: '',
+  setUpdateApi: (updateApi: string) => {
+    set({ updateApi });
+  },
+  boarditems: [],
+  setBoardItems: (items, columnMap) => {
+    const allowStatuses = columnMap.statuses.map((item) => item.value);
+    const boarditems = items.filter((item) => {
+      return allowStatuses.includes(item.Status?.id);
+    });
 
-        set({ boarditems });
-      },
-      config: {} as ProjectConfig,
-      setConfig: (config: ProjectConfig) => {
-        set({ config });
-      },
-    }),
-    {
-      name: 'project-storage',
-    },
-  ),
-);
+    set({ boarditems });
+  },
+  config: {} as ProjectConfig,
+  setConfig: (config: ProjectConfig) => {
+    set({ config });
+  },
+}));
 
 export const useSprint = create<{
   currentSprint: string | null;
@@ -84,37 +76,28 @@ export const useColumnStore = create<{
   getStatus: (statusId: string) => StatusValue;
   configDescription: string;
   setConfigDescription: (description: string) => void;
-}>()(
-  persist(
-    (set, get) => ({
-      columns: {},
-      setColumns: (columns: { [key: string]: any }) => {
-        set({ columns });
+}>()((set, get) => ({
+  columns: {},
+  setColumns: (columns: { [key: string]: any }) => {
+    set({ columns });
+  },
+  columnMap: {} as ColumnMapValue,
+  setColumnMap: (columnMap) => {
+    set((state) => ({
+      ...state,
+      columnMap: {
+        ...state.columnMap,
+        ...columnMap,
       },
-      columnMap: {} as ColumnMapValue,
-      setColumnMap: (columnMap) => {
-        set((state) => ({
-          ...state,
-          columnMap: {
-            ...state.columnMap,
-            ...columnMap,
-          },
-        }));
-      },
-      getStatus: (statusId) => {
-        const statusOptions = get().columns.Status.settings.options;
-        const status = statusOptions.find(
-          (option: any) => option.id === statusId,
-        )!;
-        return status ?? {};
-      },
-      configDescription: '',
-      setConfigDescription: (description: string) => {
-        set({ configDescription: description });
-      },
-    }),
-    {
-      name: 'column-storage',
-    },
-  ),
-);
+    }));
+  },
+  getStatus: (statusId) => {
+    const statusOptions = get().columns.Status.settings.options;
+    const status = statusOptions.find((option: any) => option.id === statusId)!;
+    return status ?? {};
+  },
+  configDescription: '',
+  setConfigDescription: (description: string) => {
+    set({ configDescription: description });
+  },
+}));

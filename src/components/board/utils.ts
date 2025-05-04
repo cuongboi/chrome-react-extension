@@ -298,7 +298,7 @@ export const calcStoryPoints = (
 };
 
 function isHoliday(date: Date) {
-  return window.holidays.some((holiday) =>
+  return window.holidays?.some((holiday) =>
     isSameDay(new Date(holiday), new Date(date)),
   );
 }

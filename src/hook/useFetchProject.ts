@@ -23,12 +23,12 @@ interface ItemGroupParsed {
 
 // Utility Functions
 export const fetchJson = async <T>(
-  url: string,
+  input: RequestInfo | URL,
   options: Omit<RequestInit, 'body'> & {
     body?: unknown;
   } = {},
 ): Promise<T> => {
-  const response = await fetch(url, {
+  const response = await fetch(input, {
     ...options,
     headers: {
       ...GHRequestHeaders,
@@ -169,12 +169,12 @@ export function useFetchProject({ watch = false }: Config = {}) {
       setConfigDescription(projectConfig.description);
 
       const columnMapRaw =
-        projectConfig.description.match(/<!--([^>]*)-->/is)?.[1] ?? '{}';
+        projectConfig.description?.match(/<!--([^>]*)-->/is)?.[1] ?? '{}';
+
       const columnMap = columnMapRaw.parseJson<ColumnMapValue>();
-      window.holidays = columnMap.holidays;
+      window.holidays = columnMap.holidays ?? [];
 
       setColumnMap(columnMap);
-
       setUpdateApi(JSON.parse(updateApiRaw).url);
       setColumns(
         JSON.parse(columnsDataRaw).reduce(

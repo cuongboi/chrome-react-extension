@@ -391,6 +391,7 @@ export interface ProjectItemNode {
 }
 
 export type IssueUrl = {
+  id: string;
   url: string;
   owner: string;
   repo: string;

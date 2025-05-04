@@ -1,4 +1,4 @@
-import { ChartGantt, LoaderIcon, SlidersVertical } from 'lucide-react';
+import { ChartGantt, SlidersVertical } from 'lucide-react';
 import React from 'react';
 import { Toaster } from 'sonner';
 
@@ -19,7 +19,7 @@ import ColumnMap from './column-map';
 export const ProjectManager: React.FC<{
   siblingClass: string;
   type: 'chart' | 'config';
-  isReady: boolean;
+  isReady?: boolean;
 }> = ({ siblingClass, type = 'config', isReady }) => {
   const isConfig = React.useMemo(() => type === 'config', [type]);
 
@@ -54,24 +54,18 @@ export const ProjectManager: React.FC<{
           '--sheet-content-height': 'calc(100vh - var(--base-size-4)*23)',
         }}
       >
-        {isReady ? (
-          isConfig ? (
-            <ScrollArea className="w-full h-full flex flex-col gap-2">
-              <SheetHeader>
-                <SheetTitle>Config your columns map</SheetTitle>
-                <SheetDescription>
-                  Make your columns map to the Dashboard & Gantt chart.
-                </SheetDescription>
-              </SheetHeader>
-              <ColumnMap />
-            </ScrollArea>
-          ) : (
-            <Board />
-          )
+        {isConfig ? (
+          <ScrollArea className="w-full h-full flex flex-col gap-2">
+            <SheetHeader>
+              <SheetTitle>Config your columns map</SheetTitle>
+              <SheetDescription>
+                Make your columns map to the Dashboard & Gantt chart.
+              </SheetDescription>
+            </SheetHeader>
+            <ColumnMap />
+          </ScrollArea>
         ) : (
-          <div className="flex items-center justify-center flex-1">
-            <LoaderIcon className="animate-spin" />
-          </div>
+          <Board />
         )}
         <Toaster />
       </SheetContent>

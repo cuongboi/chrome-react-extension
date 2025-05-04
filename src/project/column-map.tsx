@@ -126,7 +126,7 @@ export default function ColumnMap() {
       holidays: values.holidays.map((date) => date.toUTCString()),
     };
 
-    const description = configDescription.replace(
+    const description = configDescription?.replace(
       /<!--([^>]*)-->/is,
       `<!--${JSON.stringify(newColumnMap, null, 2)}-->`,
     );

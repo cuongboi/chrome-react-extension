@@ -65,8 +65,8 @@ export function TaskCompletionChart({
                 data={data}
                 cx="50%"
                 cy="50%"
-                innerRadius={60}
-                outerRadius={90}
+                innerRadius={50}
+                outerRadius={80}
                 paddingAngle={1}
                 dataKey="value"
                 nameKey="name"
