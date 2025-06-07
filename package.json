@@ -54,7 +54,6 @@
     "zustand-chrome-storage": "^1.0.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.8.3",
     "@eslint/js": "^9.23.0",
     "@tailwindcss/cli": "^4.0.15",
     "@tailwindcss/postcss": "^4.0.15",
@@ -70,7 +69,6 @@
     "chalk": "^5.3.0",
     "eslint": "^9.23.0",
     "husky": "^9.1.7",
-    "lefthook": "^1.7.14",
     "lint-staged": "^15.5.0",
     "postcss-cli": "^11.0.1",
     "prettier": "^3.5.3",
