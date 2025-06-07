@@ -85,13 +85,25 @@ export const getTeamWorkload = (taskData: TaskItem[], sprintName: string) => {
     .sort((a, b) => b.storyPoints - a.storyPoints);
 };
 
-// Generate burndown chart data
-export const getBurndownData = (taskData: TaskItem[], sprintName: string) => {
+export const getSprintDuration = (
+  taskData: TaskItem[],
+  sprintName: string,
+): {
+  tasks: TaskItem[];
+  duration: number;
+  startDate?: Date;
+  endDate?: Date;
+} => {
   const sprint = taskData.find((task) => task.group?.groupValue === sprintName)
     ?.group?.groupMetadata;
 
-  if (!sprint) return [];
-
+  if (!sprint)
+    return {
+      duration: 0,
+      startDate: undefined,
+      endDate: undefined,
+      tasks: [] as TaskItem[],
+    };
   taskData = taskData.filter((task) => task.group?.groupValue === sprintName);
 
   const lastIdealDate = taskData.sort(
@@ -107,6 +119,22 @@ export const getBurndownData = (taskData: TaskItem[], sprintName: string) => {
       ? actualSprintDuration
       : sprint.duration;
   const startDate = parseISO(sprint.startDate);
+  const endDate = addDays(startDate, totalDays);
+
+  return {
+    tasks: taskData,
+    duration: totalDays,
+    startDate,
+    endDate,
+  };
+};
+
+// Generate burndown chart data
+export const getBurndownData = (taskData: TaskItem[], sprintName: string) => {
+  const { duration, startDate } = getSprintDuration(taskData, sprintName);
+
+  if (!startDate) return [];
+
   const sprintTasks = getTasksForSprint(taskData, sprintName);
   const totalPoints = calcStoryPoints(sprintTasks);
 
@@ -114,7 +142,7 @@ export const getBurndownData = (taskData: TaskItem[], sprintName: string) => {
   let remaining = totalPoints;
   let ideal = totalPoints;
 
-  for (let i = 0; i < totalDays; i++) {
+  for (let i = 0; i < duration; i++) {
     const date = endOfDay(addDays(startDate, i));
     const day = i === 0 ? ' ' : format(date, 'yyyy-MM-dd');
 
@@ -297,7 +325,7 @@ export const calcStoryPoints = (
   return totalPoints;
 };
 
-function isHoliday(date: Date) {
+export function isHoliday(date: Date) {
   return window.holidays?.some((holiday) =>
     isSameDay(new Date(holiday), new Date(date)),
   );
@@ -406,6 +434,36 @@ export const sprintLabelTasks = (
     return {
       sprint: sprint.groupValue,
       labels: getLabelItems(sprintTasks),
+    };
+  });
+};
+
+export const getSprintWorkload = (taskData: TaskItem[]) => {
+  const sprintTasks = pluckTasks(
+    taskData
+      .filter((task) => task.group?.groupValue)
+      .sort((a, b) =>
+        a.group!.groupMetadata.startDate.localeCompare(
+          b.group!.groupMetadata.startDate,
+        ),
+      ),
+    (task) => task.group?.groupValue ?? '',
+  );
+
+  return Object.entries(sprintTasks).map(([sprintName, tasks]) => {
+    const parentIds = tasks.map((item) => item.Title.number);
+
+    const totalPoints = tasks.reduce((acc, task) => {
+      const storyPoints = parentIds.includes(Number(task.parentId?.value))
+        ? 0
+        : getBusinessDaysDifference(task.end.value, task.start.value) + 1;
+
+      return acc + storyPoints * task.Assignees.length;
+    }, 0);
+
+    return {
+      sprint: sprintName,
+      totalPoints,
     };
   });
 };

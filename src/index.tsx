@@ -1,13 +1,19 @@
 import EventEmitter from 'events';
-import { StrictMode } from 'react';
+import type { LRUCache } from 'lru-cache';
 import { createRoot } from 'react-dom/client';
 
-import { AppProvider } from './provider';
+import { AppProvider } from './providers/app-provider';
+import type { ColumnMapValue } from './storage/project';
 
 declare global {
   interface Window {
     ev: EventEmitter;
     holidays: Date[];
+    config: {
+      columns: Record<string, any>;
+      columnMap: ColumnMapValue;
+    };
+    cache: LRUCache<{}, {}, unknown>;
   }
 }
 
@@ -32,9 +38,5 @@ if (body) {
   body.appendChild(app);
 
   const appRoot = createRoot(app);
-  appRoot.render(
-    <StrictMode>
-      <AppProvider />
-    </StrictMode>,
-  );
+  appRoot.render(<AppProvider />);
 }

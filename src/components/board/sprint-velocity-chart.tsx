@@ -22,7 +22,6 @@ interface SprintVelocityChartProps {
   selectedSprint: string;
   items: TaskItem[];
 }
-
 export function SprintVelocityChart({
   selectedSprint,
   items,

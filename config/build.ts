@@ -15,7 +15,7 @@ const FILE_EXTENSIONS = {
   css: '.css',
 } as const;
 
-const entrypoints = ['index.tsx', 'background.ts', 'popup/index.tsx'];
+const entrypoints = ['index.tsx', 'background.ts'];
 
 const resolveEntryPoints = (entrypoints: string[]): string[] =>
   entrypoints.map((entrypoint) => `./src/${entrypoint}`);

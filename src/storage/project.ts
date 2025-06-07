@@ -13,6 +13,8 @@ export const useProjectStore = create<{
   groups: { [key: string]: Group };
   setGroups: (groups: { [key: string]: Group }) => void;
   updateApi: string;
+  fetchItemApi?: string;
+  setFetchItemApi: (fetchItemApi: string) => void;
   setUpdateApi: (updateApi: string) => void;
   boarditems: TaskItem[];
   setBoardItems: (items: TaskItem[], columnMap: ColumnMapValue) => void;
@@ -44,6 +46,10 @@ export const useProjectStore = create<{
   setConfig: (config: ProjectConfig) => {
     set({ config });
   },
+  fetchItemApi: '',
+  setFetchItemApi: (fetchItemApi: string) => {
+    set({ fetchItemApi });
+  },
 }));
 
 export const useSprint = create<{
@@ -64,6 +70,7 @@ export type ColumnMapValue = {
   actualEnd: string;
   statuses: { value: string; label: string }[];
   holidays: Date[];
+  group: string;
 };
 
 export type ColumnMap = Record<string, ColumnMapValue>;

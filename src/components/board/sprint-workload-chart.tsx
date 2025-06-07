@@ -1,6 +1,5 @@
 'use client';
 
-import { ArrowUp } from 'lucide-react';
 import React from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
@@ -9,41 +8,29 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { useProjectStore } from '@/storage/project';
 import type { TaskItem } from '@/types';
 
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { getPrevSprint, sprintLabelTasks } from './utils';
+import { getSprintWorkload } from './utils';
 
-interface BugCounterChartProps {
-  selectedSprint: string;
+interface SprintWorkLoadChartProps {
   items: TaskItem[];
+  selectedSprint: string;
 }
 
-export function BugCounterChart({
-  selectedSprint,
+export function SprintWorkLoadChart({
   items,
-}: BugCounterChartProps) {
-  const { groups } = useProjectStore();
-  const contentRef = React.useRef<HTMLDivElement>(null);
+  selectedSprint,
+}: SprintWorkLoadChartProps) {
+  const data = React.useMemo(() => {
+    const sprintWorkload = getSprintWorkload(items);
+    const currentSprintIndex = sprintWorkload.findIndex(
+      (item) => item.sprint === selectedSprint,
+    );
 
-  const { data, currentBugCount, prevSprintCount } = React.useMemo(() => {
-    const prevSprint = getPrevSprint(Object.values(groups), selectedSprint);
-    const sprintLabels = sprintLabelTasks(groups, items, selectedSprint);
-
-    const data = sprintLabels.map(({ sprint, labels }) => ({
-      sprint,
-      bug: Number(labels.get('bug')?.tasks.length || 0),
-    }));
-
-    return {
-      data,
-      currentBugCount:
-        data.find((item) => item.sprint === selectedSprint)?.bug || 0,
-      prevSprintCount:
-        data.find((item) => item.sprint === prevSprint)?.bug || 0,
-    };
+    return sprintWorkload.slice(0, currentSprintIndex + 1);
   }, [items, selectedSprint]);
+  const contentRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
     if (contentRef.current) {
@@ -64,10 +51,9 @@ export function BugCounterChart({
     data && (
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Sprints Bug</CardTitle>
-          <ArrowUp
-            className={`h-4 w-4 ${currentBugCount < prevSprintCount ? 'text-green-600 rotate-180' : 'text-red-600'}`}
-          />
+          <CardTitle className="text-sm font-medium">
+            Sprints Workload
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div
@@ -76,9 +62,9 @@ export function BugCounterChart({
           >
             <ChartContainer
               config={{
-                bug: {
-                  label: 'Bug',
-                  color: 'var(--color-red-600)',
+                totalPoints: {
+                  label: 'Points',
+                  color: 'var(--borderColor-success-emphasis)',
                 },
               }}
               className="h-24 table"
@@ -104,10 +90,10 @@ export function BugCounterChart({
                 />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Bar
-                  dataKey="bug"
+                  dataKey="totalPoints"
                   radius={[4, 4, 0, 0]}
                   maxBarSize={35}
-                  fill="var(--color-red-600)"
+                  fill="var(--borderColor-success-emphasis)"
                   label={{
                     position: 'middle',
                     fill: '#ffffff',

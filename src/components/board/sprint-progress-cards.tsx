@@ -1,5 +1,5 @@
 import { addDays, endOfDay, isBefore } from 'date-fns';
-import { ArrowUp, CheckCircle, Clock, ListTodo } from 'lucide-react';
+import { ArrowUp, Clock, ListTodo } from 'lucide-react';
 import React, { memo } from 'react';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +7,7 @@ import { useProjectStore } from '@/storage/project';
 import type { TaskItem } from '@/types';
 
 import { BugCounterChart } from './bug-counter-chart';
+import { SprintWorkLoadChart } from './sprint-workload-chart';
 import {
   getSprintProgress,
   getPrevSprint,
@@ -131,46 +132,6 @@ export const SprintProgressCards = memo(
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Completed Tasks
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="flex h-full flex-col justify-between">
-            <div className="text-2xl font-bold flex-1">
-              {sprintMetrics.completedTasks}/{sprintMetrics.totalTasks}
-            </div>
-            {sprintMetrics.yesterdayCompletedTasksLength > 0 && (
-              <p
-                className={`text-xs flex items-center ${
-                  sprintMetrics.completedTasks >=
-                  sprintMetrics.yesterdayCompletedTasksLength
-                    ? 'text-green-600'
-                    : 'text-red-600'
-                }`}
-              >
-                <ArrowUp
-                  className={`mr-1 h-4 w-4 ${
-                    sprintMetrics.completedTasks >=
-                    sprintMetrics.yesterdayCompletedTasksLength
-                      ? ''
-                      : 'rotate-180'
-                  }`}
-                />
-                {Math.round(
-                  (sprintMetrics.completedTasks /
-                    sprintMetrics.yesterdayCompletedTasksLength -
-                    1) *
-                    100,
-                )}
-                % from yesterday
-              </p>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Story Points</CardTitle>
             <ListTodo className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -217,6 +178,8 @@ export const SprintProgressCards = memo(
             </div>
           </CardContent>
         </Card>
+
+        <SprintWorkLoadChart items={items} selectedSprint={selectedSprint} />
 
         <BugCounterChart items={items} selectedSprint={selectedSprint} />
       </div>

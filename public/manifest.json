@@ -3,7 +3,7 @@
   "description": "Github Gantt Chart Support. THIS EXTENSION IS FOR BETA TESTING",
   "short_name": "Github Gantt Chart",
 
-  "version": "0.2.5",
+  "version": "0.2.8",
   "manifest_version": 3,
   "icons": {
     "36": "icons/36.png",

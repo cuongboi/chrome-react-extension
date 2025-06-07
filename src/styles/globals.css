@@ -180,3 +180,19 @@
   padding-left: calc(var(--spacing) * 4) !important;
   padding-right: calc(var(--spacing) * 4) !important;
 }
+
+.arrow {
+  pointer-events: none;
+  z-index: 99999999;
+}
+
+.arrow__path {
+  stroke: #fff;
+  fill: transparent;
+  stroke-dasharray: 4 2;
+}
+
+.arrow__head line {
+  stroke: #fff;
+  stroke-width: 1px;
+}

@@ -387,6 +387,10 @@ export interface ProjectItemNode {
   issueCreatedAt?: string;
   issueClosedAt?: string;
   state?: string;
+  memexProjectColumnValues: {
+    memexProjectColumnId: string;
+    value: any;
+  }[];
   [key: string]: any;
 }
 
@@ -396,4 +400,43 @@ export type IssueUrl = {
   owner: string;
   repo: string;
   issue: string;
+  title: string;
 };
+
+export interface ItemGroupParsed {
+  groups?: { nodes: Array<{ groupId: string; groupMetadata: any }> };
+  groupedItems?: Array<{ groupId: string; nodes: any[] }>;
+  nodes: any[];
+}
+
+export interface SprintColumn {
+  dataType: string;
+  id: number;
+  databaseId: number;
+  name: string;
+  nameSlug: string;
+  position: number;
+  userDefined: boolean;
+  visible: boolean;
+  settings: {
+    configuration: {
+      duration: number;
+      iterations: {
+        id: string;
+        title: string;
+        titleHtml: string;
+        startDate: string;
+        duration: number;
+      }[];
+      startDay: number;
+      completedIterations: {
+        id: string;
+        title: string;
+        titleHtml: string;
+        startDate: string;
+        duration: number;
+      }[];
+    };
+  };
+  partialFailures: any;
+}

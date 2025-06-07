@@ -1,7 +1,6 @@
 import { $ } from 'bun';
 import chalk from 'chalk';
 import { watch, type FSWatcher } from 'fs';
-import path from 'path';
 import { parseArgs } from 'util';
 
 import './cwd';
@@ -80,9 +79,7 @@ const main = async (): Promise<void> => {
     process.exit(1);
   }
 
-  const packagesDir = path.resolve(process.cwd(), 'packages');
-
-  const watcher = new DirectoryWatcher([...directories, packagesDir]);
+  const watcher = new DirectoryWatcher([...directories]);
   await watcher.startWatching();
 
   process.on('SIGINT', () => {

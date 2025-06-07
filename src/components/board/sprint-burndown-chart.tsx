@@ -44,6 +44,20 @@ export function SprintBurndownChart({
     [groups, selectedSprint],
   );
 
+  const endDate = React.useMemo(() => {
+    try {
+      return format(
+        addDays(
+          currentSprint.groupMetadata?.startDate,
+          currentSprint.groupMetadata?.duration - 1,
+        ),
+        'yyyy-MM-dd',
+      );
+    } catch {
+      return '';
+    }
+  }, [currentSprint]);
+
   return (
     <Card>
       <CardHeader>
@@ -112,18 +126,14 @@ export function SprintBurndownChart({
                 strokeDasharray="3 8"
                 strokeWidth={1}
               />
-              <ReferenceLine
-                x={format(
-                  addDays(
-                    currentSprint.groupMetadata.startDate,
-                    currentSprint.groupMetadata.duration - 1,
-                  ),
-                  'yyyy-MM-dd',
-                )}
-                stroke="red"
-                strokeDasharray="3 3"
-                strokeWidth={1}
-              />
+              {endDate && (
+                <ReferenceLine
+                  x={endDate}
+                  stroke="red"
+                  strokeDasharray="3 3"
+                  strokeWidth={1}
+                />
+              )}
             </LineChart>
           </ChartContainer>
         </div>
